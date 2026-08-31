@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+<meta charset="utf-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Būrelių testas — koks būrelis tinka mano vaikui?</title>
+<meta name="description" content="Nemokamas 2 minučių testas tėvams: 10 klausimų parodo, koks būrelio TIPAS tinka jūsų vaikui, ir kiek tokių programų realiai yra Vilniuje. Šeši tipai, 2 624 realios programos, jokios reklamos.">
+<meta name="author" content="Kristijonas Vasiliauskas">
+<meta name="theme-color" id="tc-light" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" id="tc-dark" content="#080808" media="(prefers-color-scheme: dark)">
+<link rel="canonical" href="https://krisvas333.github.io/bureliu-testas/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="krisvas.lt">
+<meta property="og:locale" content="lt_LT">
+<meta property="og:title" content="Būrelių testas — koks būrelis tinka mano vaikui?">
+<meta property="og:description" content="10 klausimų · 2 min · šeši vaiko tipai · 2 624 realios Vilniaus programos. Be reklamos ir be vieno „teisingo“ teikėjo.">
+<meta property="og:url" content="https://krisvas333.github.io/bureliu-testas/">
+<meta property="og:image" content="https://krisvas333.github.io/bureliu-testas/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Būrelių testas — koks būrelis tinka mano vaikui?">
+<meta name="twitter:description" content="10 klausimų · 2 min · šeši vaiko tipai · 2 624 realios Vilniaus programos.">
+<meta name="twitter:image" content="https://krisvas333.github.io/bureliu-testas/og.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='34' fill='%23D90429'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700;800&display=swap">
+<link rel="stylesheet" href="styles.css">
+
+<!-- =========================================================================
+     Analitika UŽ SUTIKIMO (ePrivacy 5(3) / ERĮ 69 str., kaip žemėlapyje).
+     Iki „Sutinku" į Google ar bet kurią trečiąją šalį nesikreipiama VISAI —
+     ne tik „consent denied", o joks skriptas neįkeliamas. Testas veikia
+     vienodai su bet kuriuo atsakymu.
+     ========================================================================= -->
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',
+  analytics_storage:'denied',functionality_storage:'granted',security_storage:'granted'});
+window.BTConsent=(function(){
+  var KEY='bt-consent', GA='G-W7Z2B0TYVN', loaded=false;
+  function read(){try{return localStorage.getItem(KEY);}catch(e){return null;}}
+  function write(v){try{localStorage.setItem(KEY,v);}catch(e){}}
+  function pageNoHash(){return location.origin+location.pathname+location.search;}
+  function load(){
+    if(loaded)return; loaded=true;
+    gtag('consent','update',{analytics_storage:'granted'});
+    gtag('js',new Date());
+    gtag('config',GA,{page_location:pageNoHash(),anonymize_ip:true});
+    var a=document.createElement('script');
+    a.async=true; a.src='https://www.googletagmanager.com/gtag/js?id='+GA;
+    document.head.appendChild(a);
+    var b=document.createElement('script');
+    b.defer=true; b.src='https://krisvas333.github.io/neuron-ar/track.js';
+    b.setAttribute('data-brand','kris'); b.setAttribute('data-artifact','bureliu-testas-v4');
+    b.setAttribute('data-kind','quiz');
+    document.head.appendChild(b);
+  }
+  return { state:read, accept:function(){write('granted');load();},
+           decline:function(){write('denied');},
+           boot:function(){ if(read()==='granted') load(); return read(); } };
+})();
+</script>
+
+<!-- tema prieš pirmą piešimą — jokio blyksnio -->
+<script>
+(function(){try{var t=localStorage.getItem('bt-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
+</script>
+</head>
+<body>
+
+<canvas id="net" aria-hidden="true"></canvas>
+
+<button id="btnTheme" class="theme-btn" type="button" title="Šviesus / tamsus" aria-label="Perjungti šviesią arba tamsią temą">◐</button>
+
+<main id="app">
+
+  <!-- ============================ 1. LANDING ============================ -->
+  <section id="s-landing" class="screen on" aria-labelledby="h-landing">
+    <div class="wrap hero">
+      <p class="eyebrow">Nemokamas · 2 min · 10 klausimų</p>
+      <h1 id="h-landing">Koks būrelis tinka <em>MANO</em> vaikui?</h1>
+      <p class="lead">Šeši tipai, 2 624 realios Vilniaus programos, jokios reklamos.</p>
+
+      <button id="btnStart" class="btn btn-primary btn-lg" type="button">Pradėti →</button>
+
+      <p class="undernote">
+        <a href="metodika.html" id="lnkMethodTop">Kaip tai veikia ir kodėl galiu tuo tikėti →</a>
+      </p>
+
+      <p class="byline">
+        Kris Vasiliauskas · <a href="https://krisvas.lt" id="lnkKris" target="_blank" rel="noopener">krisvas.lt</a>
+        <span class="sep">·</span>
+        <span class="quiet">Powered by ExoClass.lt</span>
+      </p>
+    </div>
+
+    <div class="trust">
+      <div class="wrap trust-in">
+        <div class="t-item"><b>6</b><i>tipai</i></div>
+        <div class="t-dot" aria-hidden="true">·</div>
+        <div class="t-item"><b>10</b><i>klausimų</i></div>
+        <div class="t-dot" aria-hidden="true">·</div>
+        <div class="t-item"><b>2 624</b><i>programos</i></div>
+        <div class="t-dot" aria-hidden="true">·</div>
+        <div class="t-item"><b>0</b><i>reklamos</i></div>
+      </div>
+      <p class="wrap trust-line">Testas nerodo nė vieno teikėjo kaip „teisingo“. Rodo tik veiklų šeimas ir tikrą jų pasiūlą Vilniuje.</p>
+      <p class="wrap ai-note">⚗️ <b>Eksperimentinis prototipas, sukurtas su AI.</b> Gali klysti — svarbius dalykus pasitikrinkite pas būrelio vadovą. Nemokamas. <a href="metodika.html">Kaip veikia ir kur klysta →</a></p>
+    </div>
+  </section>
+
+  <!-- ============================ 2. ŽINGSNIAI ========================== -->
+  <section id="s-step" class="screen" hidden aria-labelledby="stepTitle">
+    <div class="topbar">
+      <div class="topbar-in">
+        <button id="btnBack" class="icon-btn" type="button" aria-label="Atgal į ankstesnį klausimą">←</button>
+        <div class="prog" role="progressbar" aria-valuemin="0" aria-valuemax="13" aria-valuenow="0" aria-label="Testo eiga">
+          <div class="prog-fill" id="progFill"></div>
+        </div>
+        <span class="left-n" id="leftN">Liko 13</span>
+      </div>
+    </div>
+    <div class="wrap stage" id="stage"></div>
+  </section>
+
+  <!-- ============================ 3. ANALIZĖ ============================ -->
+  <section id="s-analyzing" class="screen" hidden aria-labelledby="h-analyzing">
+    <div class="wrap analyzing">
+      <p class="eyebrow">Skaičiuojame</p>
+      <h2 id="h-analyzing">Renkame jūsų vaiko profilį</h2>
+      <ul class="ana-list" id="anaList" aria-live="polite">
+        <li><span class="tick" aria-hidden="true">✓</span>Skaitom atsakymus</li>
+        <li><span class="tick" aria-hidden="true">✓</span>Lyginam su 6 tipais</li>
+        <li><span class="tick" aria-hidden="true">✓</span>Tikrinam mišrų profilį</li>
+        <li><span class="tick" aria-hidden="true">✓</span>Žiūrim, kiek tokių būrelių yra Vilniuje</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============================ 4. REZULTATAS ========================= -->
+  <section id="s-result" class="screen" hidden aria-labelledby="resName">
+    <div class="wrap result" id="result"></div>
+  </section>
+
+</main>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+
+<!-- sutikimo juosta — abu mygtukai vienodo svorio (EDPB: jokių tamsiųjų šablonų) -->
+<div class="consent" id="consent" role="dialog" aria-modal="false" aria-labelledby="cnsT" hidden>
+  <p class="c-t" id="cnsT">Ar galiu skaičiuoti apsilankymus?</p>
+  <p class="c-b">Testas veikia vienodai su bet kuriuo atsakymu. Statistika padeda man matyti, kurie
+    būrelių tipai tėvams aktualūs — jokių reklamų, jokio vaiko profilio, jokių duomenų tretiesiems.</p>
+  <div class="c-a">
+    <button type="button" class="btn btn-ghost" id="cnsNo">Tik būtini</button>
+    <button type="button" class="btn btn-ghost" id="cnsYes">Sutinku</button>
+  </div>
+</div>
+</body>
+</html>
