@@ -69,7 +69,16 @@ function lc(s){
 function ev(name, params){
   var p = params || {};
   try { if (window.gtag) window.gtag('event', name, p); } catch (e) {}
-  try { if (window.neuronTrack) window.neuronTrack(name, p); } catch (e) {}
+  /* track.js (neuron-ar) viešas API yra window.bt, ne neuronTrack.
+     Įkeliamas tik po „Sutinku“, todėl be sutikimo niekas nesiunčiama. */
+  try {
+    var tr = window.bt || window.neuronTrack;
+    if (typeof tr === 'function') tr(name, p);
+  } catch (e) {}
+}
+/* Clarity veidrodis: tik jei Clarity jau įkeltas (po sutikimo). Be parametrų. */
+function evClarity(name){
+  try { if (typeof window.clarity === 'function') window.clarity('event', name); } catch (e) {}
 }
 
 /* ---- konteksto surinkimas: utm · kv · referrer · įrenginys · tema ---- */
@@ -696,6 +705,9 @@ function renderResult(res){
   }
   root.appendChild(id);
 
+  /* ---- a2. naujienlaiškis (pagrindinė vieta, iškart po rezultatu) ---- */
+  root.appendChild(nlCard('top'));
+
   /* ---- b. profilis ---- */
   var prof = h('div', { class:'prof' });
   var ordered = T.TYPES.slice().sort(function (a, b){
@@ -827,6 +839,9 @@ function renderResult(res){
   /* ---- j. sąžiningumo eilutė ---- */
   root.appendChild(h('p', { class:'honesty', text: T.HONESTY }));
 
+  /* ---- j2. naujienlaiškis (antra vieta tiems, kas perskaitė viską) ---- */
+  root.appendChild(nlCard('end'));
+
   /* ---- k. atsakomybės eilutė (privaloma — wiki/meta/tool-disclaimer.md) ---- */
   var ai = h('section', { class:'res-sec ai-card' }, [
     h('p', { class:'ai-label', text:'⚗️ EKSPERIMENTINIS PROTOTIPAS' }),
@@ -838,6 +853,191 @@ function renderResult(res){
   aiLink.onclick = function (){ ev('result_cta_click', { label:'pranesti_klaida' }); };
   ai.appendChild(aiLink);
   root.appendChild(ai);
+}
+
+/* ============================ naujienlaiškis ============================
+   Viena būsena dviem kortelėms (viršuje ir pabaigoje). Užsiprenumeravus
+   abi virsta padėka. El. paštas NIEKADA nepatenka į jokį analitikos įvykį.
+   Siunčiama į krisvas.lt edge funkciją mailerlite-subscribe (CORS *). */
+var NL = {
+  URL:  'https://bpufgnpzsjmtqyfihkuk.supabase.co/functions/v1/mailerlite-subscribe',
+  KEY:  'sb_publishable_kJxdHmhHG68-L938ap3F3w_uYkMRr9D',   /* viešas publishable anon raktas */
+  TIMEOUT_MS: 15000,
+  MAIL: 'kristijonas.vasiliauskas@gmail.com',
+  PRIV: 'https://krisvas.lt/privatumas',
+  busy: false,
+  done: (function (){ try { var v = localStorage.getItem('bt-nl'); return (v === 'ok' || v === 'dup') ? v : ''; } catch (e) { return ''; } })()
+};
+var NL_TXT = {
+  top: { t:'Viena naudinga mintis tėvams kas savaitę',
+         v:'Trumpai, moksliškai pagrįstai, apie būrelius ir vaiko motyvaciją. 2 min. skaitymo.' },
+  end: { t:'Patiko? Viena mintis kas savaitę', v:'' },
+  proof:   'Jau skaito 179 tėvai',
+  consent: 'Sutinku gauti Kris Vasiliausko naujienlaiškį. Atsisakyti galima bet kada.',
+  ok:      'Ačiū! Pirmą laišką gausite šią savaitę.',
+  dup:     'Jūs jau prenumeruojate, ačiū!',
+  badMail: 'Patikrinkite el. pašto adresą.',
+  noCons:  'Pažymėkite sutikimą, kad galėčiau siųsti laiškus.',
+  slow:    'Per daug bandymų iš eilės. Palaukite minutę ir spauskite „Gauti“ dar kartą.',
+  err:     'Nepavyko, pabandykite dar kartą arba parašykite '
+};
+
+function nlEv(name, p){ ev(name, p); evClarity(name); }
+
+/* page_url be užklausos parametrų, išskyrus utm_* (be kv, be hash) */
+function nlPageUrl(){
+  var keep = [];
+  location.search.replace(/^\?/, '').split('&').forEach(function (kv){
+    if (/^utm_[a-z_]+=/i.test(kv)) keep.push(kv);
+  });
+  return location.origin + location.pathname + (keep.length ? '?' + keep.join('&') : '');
+}
+
+function nlThanks(card, focus){
+  card.innerHTML = '';
+  card.classList.add('nl-done');
+  var p = h('p', { class:'nl-thanks', role:'status', tabindex:'-1',
+                   text: NL.done === 'dup' ? NL_TXT.dup : NL_TXT.ok });
+  card.appendChild(h('span', { class:'nl-ok-ic', 'aria-hidden':'true', text:'✓' }));
+  card.appendChild(p);
+  if (focus){ try { p.focus({ preventScroll:true }); } catch (e) {} }
+}
+
+function nlSyncAll(srcCard){
+  var cards = document.querySelectorAll('.nl-card');
+  for (var i = 0; i < cards.length; i++){
+    var c = cards[i];
+    if (NL.done){ nlThanks(c, c === srcCard); continue; }
+    var b = c.querySelector('button[type="submit"]');
+    if (b){
+      b.disabled = NL.busy;
+      b.classList.toggle('is-busy', NL.busy);
+      b.setAttribute('aria-busy', NL.busy ? 'true' : 'false');
+    }
+  }
+}
+
+function nlMsg(card, text, withMail){
+  var m = card.querySelector('.nl-msg'); if (!m) return;
+  m.innerHTML = '';
+  if (!text){ m.hidden = true; return; }
+  m.hidden = false;
+  m.appendChild(document.createTextNode(text));
+  if (withMail){
+    m.appendChild(h('a', { href:'mailto:' + NL.MAIL, text: NL.MAIL }));
+  }
+}
+
+function nlCard(place){
+  var tx = NL_TXT[place] || NL_TXT.top;
+  var card = h('section', { class:'nl-card nl-' + place, 'data-place': place, 'aria-label':'Naujienlaiškis' });
+  if (NL.done){ nlThanks(card, false); return card; }
+
+  var idE = 'nlEmail-' + place, idC = 'nlCons-' + place, idH = 'nlHp-' + place;
+  card.appendChild(h('h3', { class:'nl-t', text: tx.t }));
+  if (tx.v) card.appendChild(h('p', { class:'nl-v', text: tx.v }));
+  if (place === 'top') card.appendChild(h('p', { class:'nl-proof', text: NL_TXT.proof }));
+
+  var email = h('input', { id:idE, class:'nl-in', type:'email', name:'email', inputmode:'email',
+                           autocomplete:'email', autocapitalize:'off', spellcheck:'false',
+                           placeholder:'jusu@pastas.lt', required:'required', 'aria-describedby':'nlMsg-' + place });
+  var hp = h('input', { id:idH, type:'text', name:'company', tabindex:'-1', autocomplete:'off', value:'' });
+  var cons = h('input', { id:idC, class:'nl-cb', type:'checkbox', name:'consent', required:'required' });
+  var priv = h('a', { href: NL.PRIV, target:'_blank', rel:'noopener', text:'Privatumas' });
+
+  var btn = h('button', { class:'btn btn-primary nl-btn', type:'submit' }, [
+    h('span', { class:'nl-spin', 'aria-hidden':'true' }),
+    h('span', { class:'nl-btn-t', text:'Gauti' })
+  ]);
+
+  var form = h('form', { class:'nl-form', novalidate:'novalidate', 'data-clarity-mask':'true' }, [
+    h('label', { class:'sr-only', 'for':idE, text:'El. pašto adresas' }),
+    email,
+    h('div', { class:'nl-hp', 'aria-hidden':'true' }, [h('label', { 'for':idH, text:'Įmonė' }), hp]),
+    h('label', { class:'nl-consent', 'for':idC }, [
+      cons,
+      h('span', null, [NL_TXT.consent + ' ', priv])
+    ]),
+    btn,
+    h('p', { id:'nlMsg-' + place, class:'nl-msg', role:'alert', hidden:'hidden' })
+  ]);
+  card.appendChild(form);
+
+  form.onsubmit = function (e){
+    if (e && e.preventDefault) e.preventDefault();
+    if (NL.busy || NL.done) return;
+    var val = String(email.value || '').trim();
+    email.removeAttribute('aria-invalid'); cons.removeAttribute('aria-invalid');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val)){
+      email.setAttribute('aria-invalid', 'true'); nlMsg(card, NL_TXT.badMail); email.focus(); return;
+    }
+    if (!cons.checked){
+      cons.setAttribute('aria-invalid', 'true'); nlMsg(card, NL_TXT.noCons); cons.focus(); return;
+    }
+    nlMsg(card, '');
+    nlSubmit(card, place, val, hp.value || '');
+  };
+
+  nlWatchView(card, place);
+  return card;
+}
+
+/* nl_view: kai kortelė bent per pusę pasirodo ekrane, kartą per kortelę */
+function nlWatchView(card, place){
+  function fire(){ if (card._seen || NL.done) return; card._seen = true; nlEv('nl_view', { place: place }); }
+  if (!('IntersectionObserver' in window)){ setTimeout(fire, 0); return; }
+  var io = new IntersectionObserver(function (ents){
+    ents.forEach(function (en){
+      if (en.isIntersecting && en.intersectionRatio >= 0.5){ fire(); io.disconnect(); }
+    });
+  }, { threshold: [0, 0.5, 1] });
+  io.observe(card);
+}
+
+function nlSubmit(card, place, email, company){
+  NL.busy = true; nlSyncAll();
+  nlEv('nl_submit', { place: place });
+
+  var finished = false, ctrl = null;
+  try { ctrl = new AbortController(); } catch (e) {}
+  var to = setTimeout(function (){
+    if (finished) return;
+    try { if (ctrl) ctrl.abort(); } catch (e) {}
+    fail('timeout', 0);
+  }, NL.TIMEOUT_MS);
+
+  function end(){ finished = true; clearTimeout(to); NL.busy = false; }
+  function fail(kind, status){
+    if (finished) return;
+    end(); nlSyncAll();
+    nlEv('nl_error', { place: place, kind: kind, status: status || 0 });
+    if (kind === 'rate') nlMsg(card, NL_TXT.slow);
+    else nlMsg(card, NL_TXT.err, true);
+  }
+
+  var body = JSON.stringify({
+    email: email, language: 'lt', source: 'bureliu-testas',
+    page_url: nlPageUrl(), consent: true, company: company
+  });
+  fetch(NL.URL, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'apikey': NL.KEY, 'Authorization': 'Bearer ' + NL.KEY },
+    body: body,
+    signal: ctrl ? ctrl.signal : undefined
+  }).then(function (r){
+    return r.json().catch(function (){ return null; }).then(function (d){ return { r:r, d:d }; });
+  }).then(function (x){
+    if (finished) return;
+    if (x.r.status === 429){ fail('rate', 429); return; }
+    if (!x.r.ok || !x.d || !x.d.ok){ fail('http', x.r.status); return; }
+    end();
+    NL.done = x.d.duplicate ? 'dup' : 'ok';
+    try { localStorage.setItem('bt-nl', NL.done); } catch (e) {}
+    nlEv('nl_ok', { place: place, duplicate: x.d.duplicate ? 1 : 0 });
+    nlSyncAll(card);
+  }).catch(function (){
+    fail(finished ? 'timeout' : 'network', 0);
+  });
 }
 
 function section(title, body){
@@ -1003,6 +1203,9 @@ function shareResult(){
 /* ============================ paleidimas ============================ */
 function boot(){
   initNet();
+  /* sutikimas vertinamas VISADA, ir kai sesija atkuriama į žingsnį ar rezultatą
+     (anksčiau tie keliai grįždavo anksčiau ir analitika po perkrovimo neįsijungdavo) */
+  wireConsent();
   CTX.theme = currentTheme();
   try { sessionStorage.setItem('bt-ctx', JSON.stringify(CTX)); } catch (e) {}
 
@@ -1089,7 +1292,6 @@ function boot(){
     }
   }
   show('s-landing');
-  wireConsent();
 }
 
 /* sutikimas analitikai — juosta rodoma tik tada, kai žmogus dar neatsakė.
