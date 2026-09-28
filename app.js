@@ -66,8 +66,28 @@ function lc(s){
 }
 
 /* ============================ analitika ============================ */
+/* PRIVATUMAS: į analitiką (GA4 + track.js/Umami + Clarity) keliauja TIK šie
+   raktai. Banerio pažadas: „jokio vaiko profilio, jokių duomenų tretiesiems“.
+   Leidžiama:  index (žingsnio nr./pavadinimas, ne atsakymas) · id (pauzės ekranas)
+               · via (toliau|praleisti) · theme (light|dark) · source (utm_source)
+               · label (kurį mygtuką paspaudė) · place (top|end) · kind (klaidos
+               tipas) · status (HTTP kodas) · duplicate (0|1)
+   DRAUDŽIAMA (numetama čia pat): atsakymų reikšmės/tipai/pozicijos, vaiko tipas
+   ir laimėtojai, mišrumas, amžius, dažnis, prioritetas, temos, el. paštas. */
+var EV_ALLOWED = { index:1, id:1, via:1, theme:1, source:1, label:1, place:1, kind:1, status:1, duplicate:1 };
+function evSafe(params){
+  var out = {};
+  if (!params) return out;
+  for (var k in params){
+    if (!Object.prototype.hasOwnProperty.call(params, k) || !EV_ALLOWED[k]) continue;
+    var v = params[k];
+    if (typeof v === 'number' || typeof v === 'boolean') out[k] = v;
+    else if (typeof v === 'string' && v.indexOf('@') < 0) out[k] = v.slice(0, 40);
+  }
+  return out;
+}
 function ev(name, params){
-  var p = params || {};
+  var p = evSafe(params);
   try { if (window.gtag) window.gtag('event', name, p); } catch (e) {}
   /* track.js (neuron-ar) viešas API yra window.bt, ne neuronTrack.
      Įkeliamas tik po „Sutinku“, todėl be sutikimo niekas nesiunčiama. */
@@ -874,7 +894,7 @@ var NL_TXT = {
   end: { t:'Patiko? Viena mintis kas savaitę', v:'' },
   proof:   'Jau skaito 179 tėvai',
   consent: 'Sutinku gauti Kris Vasiliausko naujienlaiškį. Atsisakyti galima bet kada.',
-  ok:      'Ačiū! Pirmą laišką gausite šią savaitę.',
+  ok:      'Ačiū! Kitą laišką gausite, kai jis išeis. Laiškai ateina maždaug kartą per savaitę.',
   dup:     'Jūs jau prenumeruojate, ačiū!',
   badMail: 'Patikrinkite el. pašto adresą.',
   noCons:  'Pažymėkite sutikimą, kad galėčiau siųsti laiškus.',
@@ -933,7 +953,7 @@ function nlCard(place){
   var card = h('section', { class:'nl-card nl-' + place, 'data-place': place, 'aria-label':'Naujienlaiškis' });
   if (NL.done){ nlThanks(card, false); return card; }
 
-  var idE = 'nlEmail-' + place, idC = 'nlCons-' + place, idH = 'nlHp-' + place;
+  var idE = 'nlEmail-' + place, idC = 'nlCons-' + place, idH = 'nlX-' + place;
   card.appendChild(h('h3', { class:'nl-t', text: tx.t }));
   if (tx.v) card.appendChild(h('p', { class:'nl-v', text: tx.v }));
   if (place === 'top') card.appendChild(h('p', { class:'nl-proof', text: NL_TXT.proof }));
@@ -941,7 +961,8 @@ function nlCard(place){
   var email = h('input', { id:idE, class:'nl-in', type:'email', name:'email', inputmode:'email',
                            autocomplete:'email', autocapitalize:'off', spellcheck:'false',
                            placeholder:'jusu@pastas.lt', required:'required', 'aria-describedby':'nlMsg-' + place });
-  var hp = h('input', { id:idH, type:'text', name:'company', tabindex:'-1', autocomplete:'off', value:'' });
+  /* medaus puodas: vardas, kurio naršyklių automatinis pildymas neatpažįsta, be etiketės */
+  var hp = h('input', { id:idH, type:'text', name:'nl_hp_x', tabindex:'-1', autocomplete:'off', value:'' });
   var cons = h('input', { id:idC, class:'nl-cb', type:'checkbox', name:'consent', required:'required' });
   var priv = h('a', { href: NL.PRIV, target:'_blank', rel:'noopener', text:'Privatumas' });
 
@@ -953,7 +974,7 @@ function nlCard(place){
   var form = h('form', { class:'nl-form', novalidate:'novalidate', 'data-clarity-mask':'true' }, [
     h('label', { class:'sr-only', 'for':idE, text:'El. pašto adresas' }),
     email,
-    h('div', { class:'nl-hp', 'aria-hidden':'true' }, [h('label', { 'for':idH, text:'Įmonė' }), hp]),
+    h('div', { class:'nl-hp', 'aria-hidden':'true' }, [hp]),
     h('label', { class:'nl-consent', 'for':idC }, [
       cons,
       h('span', null, [NL_TXT.consent + ' ', priv])
