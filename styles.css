@@ -508,3 +508,18 @@ a{color:var(--red)}
 .nl-thanks:focus{outline:none}
 .nl-card{position:relative}
 @media (min-width:720px){ .nl-card{padding:24px 24px} .nl-t{font-size:20px} }
+
+/* ---- Kur ieškoti būrelių (2026-10-04): oficialus žemėlapis · prototipas · bureliai.lt sąrašas ---- */
+.where-card{margin-top:38px;border:2px solid var(--ink);border-radius:var(--r);padding:20px 18px}
+.where-card h3{margin-bottom:14px}
+.where-item{display:flex;flex-direction:column;gap:8px;padding:14px 0;border-top:1px solid var(--line)}
+.where-item:first-of-type{border-top:0;padding-top:0}
+.where-btn{width:100%}
+.where-note{font-size:16px;line-height:1.5;color:var(--ink);margin:0}
+.where-tag{align-self:flex-start;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--red);border:1px solid var(--red);border-radius:var(--r);padding:3px 8px}
+.wl-t{font-family:var(--mono);font-weight:800;font-size:18px;margin:0;color:var(--ink)}
+.wl-coi{font-size:14px;line-height:1.5;color:var(--muted);margin:0}
+.wl-block{position:relative}
+.wl-block.wl-done{flex-direction:row;align-items:center;gap:12px}
+@media (min-width:720px){ .where-card{padding:24px} }

@@ -11,7 +11,8 @@ if (!T) { return; }
 /* ============================ konfigūracija ============================ */
 var CFG = {
   MAP:  'https://krisvas333.github.io/bureliu-zemelapis/',
-  EXO:  'https://krisvas.lt/go/bureliai',
+  VLN:  'https://neformalusugdymas.vilnius.lt/',   /* Vilniaus savivaldybės oficialus NVŠ žemėlapis */
+  WL_URL: 'https://bpufgnpzsjmtqyfihkuk.supabase.co/functions/v1/mailerlite-subscribe', /* list:'waitlist' šaka */
   SELF: 'https://krisvas333.github.io/bureliu-testas/',
   AUTO_MS:  350,      /* pauzė po paspaudimo, kad matytųsi pasirinkimas */
   SLIDE_MS: 250,      /* slinkimas kairėn */
@@ -120,6 +121,7 @@ var CTX = (function (){
     utm_campaign: q.utm_campaign || (saved && saved.utm_campaign) || '',
     utm_content:  q.utm_content  || (saved && saved.utm_content)  || '',
     kv:           q.kv           || (saved && saved.kv)           || '',
+    src:          q.src          || (saved && saved.src)          || '',
     referrer:     (saved && saved.referrer) || document.referrer || '',
     device:       w <= 480 ? 'mobile' : (w <= 1024 ? 'tablet' : 'desktop'),
     theme:        'light'
@@ -144,10 +146,8 @@ function mapUrl(topic, medium){
   pairs.push(['utm_source','testas'], ['utm_medium', medium || 'result'], ['utm_campaign', campaign()]);
   return CFG.MAP + '?' + qsBuild(pairs.concat(fwd()));
 }
-function exoUrl(){
-  return CFG.EXO + '?' + qsBuild([['utm_source','testas'], ['utm_medium','result'],
-    ['utm_campaign', campaign()]].concat(fwd()));
-}
+/* puslapio kanalas kaip kv-track.js: ?src → utm_source → direct */
+function pageSrc(){ return String(CTX.src || CTX.utm_source || 'direct').slice(0, 40); }
 function shareUrl(){
   return CFG.SELF + '?' + qsBuild([['utm_source','testas'], ['utm_medium','share'],
     ['utm_campaign', campaign()]]);
@@ -837,13 +837,8 @@ function renderResult(res){
   var topTopic = fams.length ? fams[0].topic : 'sportas';
   var ctas = h('div', { class:'ctas' });
 
-  var bMap = h('a', { class:'btn btn-primary', href: mapUrl(topTopic, 'result-cta'),
-                      target:'_blank', rel:'noopener', text:'Rasti būrelius žemėlapyje →' });
-  bMap.onclick = function (){ ev('result_cta_click', { label:'zemelapis', topic:topTopic }); };
-
-  var bExo = h('a', { class:'btn btn-outline', href: exoUrl(), target:'_blank', rel:'noopener',
-                      text:'Visi būreliai → bureliai.lt' });
-  bExo.onclick = function (){ ev('result_cta_click', { label:'bureliai' }); };
+  /* „Kur ieškoti būrelių“: oficialus Vilniaus žemėlapis · mano prototipas · bureliai.lt laukiančiųjų sąrašas */
+  root.appendChild(whereCard(topTopic));
 
   var bShare = h('button', { class:'btn btn-ghost', type:'button', text:'Pasidalinti rezultatu' });
   bShare.onclick = shareResult;
@@ -854,7 +849,7 @@ function renderResult(res){
   var bHome = h('button', { class:'btn btn-ghost', type:'button', text:'Į pradžią' });
   bHome.onclick = function (){ ev('result_cta_click', { label:'i_pradzia' }); resetQuiz(false); };
 
-  [bMap, bExo, bShare, bAgain, bHome].forEach(function (b){ ctas.appendChild(b); });
+  [bShare, bAgain, bHome].forEach(function (b){ ctas.appendChild(b); });
   root.appendChild(ctas);
 
   /* ---- j. sąžiningumo eilutė ---- */
@@ -874,6 +869,183 @@ function renderResult(res){
   aiLink.onclick = function (){ ev('result_cta_click', { label:'pranesti_klaida' }); };
   ai.appendChild(aiLink);
   root.appendChild(ai);
+}
+
+/* ============================ kur ieškoti būrelių ============================
+   Kris sprendimas 2026-10-04: jokio AI sugeneruoto bureliai.lt varianto.
+   Eilė: oficialus savivaldybės žemėlapis pirmas, mano prototipas antras,
+   bureliai.lt tik kaip laukiančiųjų sąrašas. Teikėjai neranguojami.
+   Laukiančiųjų el. paštas → mailerlite-subscribe {list:'waitlist'} →
+   lentelė waitlist_signups (NE naujienlaiškis) + laiškas Kris'ui.
+   El. paštas NIEKADA nepatenka į analitikos įvykį. */
+var WL = {
+  busy: false,
+  done: (function (){ try { var v = localStorage.getItem('bt-wl'); return (v === 'ok' || v === 'dup') ? v : ''; } catch (e) { return ''; } })()
+};
+var WL_TXT = {
+  consent: 'Sutinku, kad parašytum man apie bureliai.lt paleidimą. Tai ne naujienlaiškis, atsisakyti gali bet kada.',
+  ok:      'Ačiū! Parašysiu, kai bureliai.lt startuos.',
+  dup:     'Tu jau sąraše, ačiū!',
+  badMail: 'Patikrink el. pašto adresą.',
+  noCons:  'Pažymėk sutikimą, kad galėčiau tau parašyti.',
+  slow:    'Per daug bandymų iš eilės. Palauk minutę ir bandyk dar kartą.',
+  err:     'Nepavyko, pabandyk dar kartą arba parašyk '
+};
+
+function kvClick(label, topic){
+  var p = { label: label, place: 'kur_ieskoti', source: pageSrc() };
+  if (topic) p.topic = topic;
+  ev('kv_click', p); evClarity('kv_click');
+}
+
+/* page_url: be kv/fbclid/hash, su ?src ir utm_* (kad matytųsi kanalas) */
+function wlPageUrl(){
+  var keep = ['src=' + encodeURIComponent(pageSrc())];
+  location.search.replace(/^\?/, '').split('&').forEach(function (kv){
+    if (/^utm_[a-z_]+=/i.test(kv)) keep.push(kv);
+  });
+  return location.origin + location.pathname + '?' + keep.join('&');
+}
+
+function whereCard(topTopic){
+  var box = h('section', { class:'res-sec where-card', 'aria-labelledby':'whereT' });
+  box.appendChild(h('h3', { id:'whereT', text:'📍 Kur ieškoti būrelių' }));
+
+  /* a. oficialus Vilniaus žemėlapis */
+  var aV = h('a', { class:'btn btn-primary where-btn', href: CFG.VLN, target:'_blank',
+                    rel:'noopener noreferrer', 'data-track':'vilnius-oficialus',
+                    text:'Vilniaus miesto oficialus žemėlapis →' });
+  aV.onclick = function (){ kvClick('vilnius_oficialus'); };
+  box.appendChild(h('div', { class:'where-item' }, [
+    aV,
+    h('p', { class:'where-note', text:'Tik Vilnius. Mes su komanda statom visos Lietuvos žemėlapį.' })
+  ]));
+
+  /* b. mano prototipas (bureliu-zemelapis), atsidaro su vaiko tema */
+  var aP = h('a', { class:'btn btn-outline where-btn', href: mapUrl(topTopic, 'result-cta'),
+                    target:'_blank', rel:'noopener', 'data-track':'prototipas-zemelapis',
+                    text:'Mano būrelių žemėlapis →' });
+  aP.onclick = function (){
+    kvClick('prototipas_zemelapis', topTopic);
+    ev('result_cta_click', { label:'zemelapis', topic:topTopic });
+  };
+  box.appendChild(h('div', { class:'where-item' }, [
+    h('span', { class:'where-tag', text:'Prototipas (mano)' }),
+    aP,
+    h('p', { class:'where-note', text:'Pasidariau iš atvirų duomenų, kol kas tik Vilnius. Atsidarys su tavo vaikui tinkančia tema. Gali klysti, pasitikrink pas vadovą.' })
+  ]));
+
+  /* c. bureliai.lt netrukus: laukiančiųjų sąrašas */
+  box.appendChild(wlBlock());
+  return box;
+}
+
+function wlThanks(wrap){
+  wrap.innerHTML = '';
+  wrap.classList.add('wl-done');
+  wrap.appendChild(h('span', { class:'nl-ok-ic', 'aria-hidden':'true', text:'✓' }));
+  var p = h('p', { class:'nl-thanks', role:'status', tabindex:'-1', text: WL.done === 'dup' ? WL_TXT.dup : WL_TXT.ok });
+  wrap.appendChild(p);
+  return p;
+}
+
+function wlMsg(wrap, text, withMail){
+  var m = wrap.querySelector('.nl-msg'); if (!m) return;
+  m.innerHTML = '';
+  if (!text){ m.hidden = true; return; }
+  m.hidden = false;
+  m.appendChild(document.createTextNode(text));
+  if (withMail) m.appendChild(h('a', { href:'mailto:' + NL.MAIL, text: NL.MAIL }));
+}
+
+function wlBlock(){
+  var wrap = h('div', { class:'where-item wl-block' });
+  wrap.appendChild(h('p', { class:'wl-t', text:'bureliai.lt netrukus' }));
+  if (WL.done){ wlThanks(wrap); return wrap; }
+  wrap.appendChild(h('p', { class:'where-note', text:'Būk vienas pirmųjų. Palik el. paštą, parašysiu, kai paleisim.' }));
+
+  var email = h('input', { id:'wlEmail', class:'nl-in', type:'email', name:'email', inputmode:'email',
+                           autocomplete:'email', autocapitalize:'off', spellcheck:'false',
+                           placeholder:'tavo@pastas.lt', required:'required', 'aria-describedby':'wlMsg' });
+  var hp = h('input', { id:'wlX', type:'text', name:'wl_hp_x', tabindex:'-1', autocomplete:'off', value:'' });
+  var cons = h('input', { id:'wlCons', class:'nl-cb', type:'checkbox', name:'consent', required:'required' });
+  var priv = h('a', { href: NL.PRIV, target:'_blank', rel:'noopener', text:'Privatumas' });
+  var btn = h('button', { class:'btn btn-primary nl-btn', type:'submit' }, [
+    h('span', { class:'nl-spin', 'aria-hidden':'true' }),
+    h('span', { class:'nl-btn-t', text:'Noriu būti pirmas' })
+  ]);
+  var form = h('form', { class:'nl-form wl-form', novalidate:'novalidate', 'data-clarity-mask':'true' }, [
+    h('label', { class:'sr-only', 'for':'wlEmail', text:'El. pašto adresas' }),
+    email,
+    h('div', { class:'nl-hp', 'aria-hidden':'true' }, [ h('label', { 'for':'wlX', text:'Nepildyk' }), hp ]),
+    h('label', { class:'nl-consent', 'for':'wlCons' }, [ cons, h('span', null, [WL_TXT.consent + ' ', priv]) ]),
+    btn,
+    h('p', { id:'wlMsg', class:'nl-msg', role:'alert', hidden:'hidden' }),
+    h('p', { class:'wl-coi', text:'Atvirai: bureliai.lt kuria ExoClass, kurios bendraįkūrėjis esu aš. Sąraše nė vienas teikėjas negaus pirmumo.' })
+  ]);
+  wrap.appendChild(form);
+
+  function busy(on){
+    WL.busy = on; btn.disabled = on; btn.classList.toggle('is-busy', on);
+    btn.setAttribute('aria-busy', on ? 'true' : 'false');
+  }
+
+  form.onsubmit = function (e){
+    if (e && e.preventDefault) e.preventDefault();
+    if (WL.busy || WL.done) return;
+    var val = String(email.value || '').trim();
+    email.removeAttribute('aria-invalid'); cons.removeAttribute('aria-invalid');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val)){
+      email.setAttribute('aria-invalid', 'true'); wlMsg(wrap, WL_TXT.badMail); email.focus(); return;
+    }
+    if (!cons.checked){
+      cons.setAttribute('aria-invalid', 'true'); wlMsg(wrap, WL_TXT.noCons); cons.focus(); return;
+    }
+    wlMsg(wrap, '');
+    busy(true);
+    ev('bureliai_waitlist_submit', { place:'kur_ieskoti', source: pageSrc() });
+    evClarity('bureliai_waitlist_submit');
+
+    var finished = false, ctrl = null;
+    try { ctrl = new AbortController(); } catch (x) {}
+    var to = setTimeout(function (){
+      if (finished) return;
+      try { if (ctrl) ctrl.abort(); } catch (x) {}
+      fail('timeout', 0);
+    }, NL.TIMEOUT_MS);
+    function end(){ finished = true; clearTimeout(to); busy(false); }
+    function fail(kind, status){
+      if (finished) return;
+      end();
+      ev('bureliai_waitlist_error', { place:'kur_ieskoti', kind: kind, status: status || 0 });
+      wlMsg(wrap, kind === 'rate' ? WL_TXT.slow : WL_TXT.err, kind !== 'rate');
+    }
+    var body = JSON.stringify({
+      email: val, language: 'lt', list: 'waitlist', role: 'parent',
+      type: 'bureliai-waitlist', source: 'bureliai-waitlist', src: pageSrc(),
+      page_url: wlPageUrl(), consent: true, company: hp.value || ''
+    });
+    fetch(CFG.WL_URL, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'apikey': NL.KEY, 'Authorization': 'Bearer ' + NL.KEY },
+      body: body,
+      signal: ctrl ? ctrl.signal : undefined
+    }).then(function (r){
+      return r.json().catch(function (){ return null; }).then(function (d){ return { r:r, d:d }; });
+    }).then(function (x){
+      if (finished) return;
+      if (x.r.status === 429){ fail('rate', 429); return; }
+      if (!x.r.ok || !x.d || !x.d.ok){ fail('http', x.r.status); return; }
+      end();
+      WL.done = x.d.duplicate ? 'dup' : 'ok';
+      try { localStorage.setItem('bt-wl', WL.done); } catch (y) {}
+      ev('bureliai_waitlist_ok', { place:'kur_ieskoti', duplicate: x.d.duplicate ? 1 : 0 });
+      evClarity('bureliai_waitlist_ok');
+      var p = wlThanks(wrap);
+      try { p.focus({ preventScroll:true }); } catch (y) {}
+    }).catch(function (){ fail(finished ? 'timeout' : 'network', 0); });
+  };
+  return wrap;
 }
 
 /* ============================ naujienlaiškis ============================
