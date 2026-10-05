@@ -357,7 +357,7 @@
 
   var HONESTY = 'Šis testas yra pokalbio su vaiku pradžia, ne diagnozė. Vaikas auga ir keičiasi, tad pakartok po pusmečio.';
 
-  var DISCLOSURE = 'Robotikos Akademiją įkūriau aš, Kristijonas, o bureliai.lt kuria ExoClass, įmonė, kurios bendraįkūrėjas taip pat esu. Todėl šiame teste nė vienas teikėjas negauna pirmumo: technologijos rodomos tik tada, kai tikrai atitinka profilį, o žemėlapis ir sąrašai visus būrelius rodo vienodai.';
+  var DISCLOSURE = 'Robotikos Akademijos bendraįkūrėjas esu aš, Kristijonas, o bureliai.lt kuria ExoClass, įmonė, kurios bendraįkūrėjas taip pat esu. Todėl šiame teste nė vienas teikėjas negauna pirmumo: technologijos rodomos tik tada, kai tikrai atitinka profilį, o žemėlapis ir sąrašai visus būrelius rodo vienodai.';
 
   global.TESTAS = {
     TYPES: TYPES, QUESTIONS: QUESTIONS, META: META, SUPPLY: SUPPLY, SUPPLY_TOTAL: SUPPLY_TOTAL,

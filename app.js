@@ -141,7 +141,8 @@ function fwd(){
 }
 function campaign(){ return (S.res ? S.res.winners.join('-') : 'testas'); }
 function mapUrl(topic, medium){
-  var pairs = [['tema', TOPIC_SLUG[topic] || topic]];
+  var list = [].concat(topic).map(function (t){ return TOPIC_SLUG[t] || t; });
+  var pairs = [['tema', list.join(',')]];
   if (S.age) pairs.push(['amzius', S.age]);
   pairs.push(['utm_source','testas'], ['utm_medium', medium || 'result'], ['utm_campaign', campaign()]);
   return CFG.MAP + '?' + qsBuild(pairs.concat(fwd()));
@@ -843,7 +844,23 @@ function renderResult(res){
   root.appendChild(disc);
 
   /* ---- i. mygtukai ---- */
-  var topTopic = fams.length ? fams[0].topic : 'sportas';
+  /* Žemėlapio nuoroda „Mano būrelių žemėlapis“: bias vartai 2026-10-05.
+     TAISYKLĖ: atidarome VISAS temas su aukščiausiu svoriu (lygiosios neskaldomos
+     pagal pasiūlos dydį). Žemėlapis priima sąrašą ?tema=a,b (bureliu-zemelapis
+     app.js: o.tema.split(',')). Anksčiau lygiosios rikiuotos pagal pasiūlą, todėl
+     Statytojui visada atsidarydavo technologijos, o kalbos/šokis/menai/teatras niekada.
+     Vienas laimėtojas → ką atidaro:
+       Statytojas  → technologijos, menai
+       Tyrinėtojas → gamta
+       Atlikėjas   → teatras, muzika, šokis
+       Strategas   → protas
+       Judantis    → sportas, šokis
+       Jungėjas    → kita, kalbos
+     Mišrus profilis → visų laimėjusių tipų 3 balų temų sąjunga. */
+  var topW = fams.length ? fams[0].weight : 0;
+  var topTopic = fams.length
+    ? T.familiesFor(res.winners).filter(function (f){ return f.weight === topW; }).map(function (f){ return f.topic; })
+    : ['sportas'];
   var ctas = h('div', { class:'ctas' });
 
   /* „Kur ieškoti būrelių“: oficialus Vilniaus žemėlapis · mano prototipas · bureliai.lt laukiančiųjų sąrašas */
@@ -967,13 +984,13 @@ function whereCard(topTopic){
                     target:'_blank', rel:'noopener', 'data-track':'prototipas-zemelapis',
                     text:'Mano būrelių žemėlapis →' });
   aP.onclick = function (){
-    kvClick('prototipas_zemelapis', topTopic);
-    ev('result_cta_click', { label:'zemelapis', topic:topTopic });
+    kvClick('prototipas_zemelapis', topTopic.join(','));
+    ev('result_cta_click', { label:'zemelapis', topic:topTopic.join(',') });
   };
   box.appendChild(h('div', { class:'where-item' }, [
     h('span', { class:'where-tag', text:'Prototipas (mano)' }),
     aP,
-    h('p', { class:'where-note', text:'Pasidariau iš atvirų duomenų, kol kas tik Vilnius. Atsidarys su tavo vaikui tinkančia tema. Gali klysti, pasitikrink pas vadovą.' })
+    h('p', { class:'where-note', text:'Pasidariau iš atvirų duomenų, kol kas tik Vilnius. Atsidarys su tavo vaikui tinkančiomis temomis. Gali klysti, pasitikrink pas vadovą.' })
   ]));
 
   /* b2. ne Vilnius: tas pats el. pašto/naujienlaiškio komponentas, source test-nonvilnius */
