@@ -11,7 +11,8 @@ if (!T) { return; }
 /* ============================ konfigūracija ============================ */
 var CFG = {
   MAP:  'https://krisvas333.github.io/bureliu-zemelapis/',
-  EXO:  'https://krisvas.lt/go/bureliai',
+  VLN:  'https://neformalusugdymas.vilnius.lt/',   /* Vilniaus savivaldybės oficialus NVŠ žemėlapis */
+  WL_URL: 'https://bpufgnpzsjmtqyfihkuk.supabase.co/functions/v1/mailerlite-subscribe', /* list:'waitlist' šaka */
   SELF: 'https://krisvas333.github.io/bureliu-testas/',
   AUTO_MS:  350,      /* pauzė po paspaudimo, kad matytųsi pasirinkimas */
   SLIDE_MS: 250,      /* slinkimas kairėn */
@@ -120,6 +121,7 @@ var CTX = (function (){
     utm_campaign: q.utm_campaign || (saved && saved.utm_campaign) || '',
     utm_content:  q.utm_content  || (saved && saved.utm_content)  || '',
     kv:           q.kv           || (saved && saved.kv)           || '',
+    src:          q.src          || (saved && saved.src)          || '',
     referrer:     (saved && saved.referrer) || document.referrer || '',
     device:       w <= 480 ? 'mobile' : (w <= 1024 ? 'tablet' : 'desktop'),
     theme:        'light'
@@ -139,15 +141,14 @@ function fwd(){
 }
 function campaign(){ return (S.res ? S.res.winners.join('-') : 'testas'); }
 function mapUrl(topic, medium){
-  var pairs = [['tema', TOPIC_SLUG[topic] || topic]];
+  var list = [].concat(topic).map(function (t){ return TOPIC_SLUG[t] || t; });
+  var pairs = [['tema', list.join(',')]];
   if (S.age) pairs.push(['amzius', S.age]);
   pairs.push(['utm_source','testas'], ['utm_medium', medium || 'result'], ['utm_campaign', campaign()]);
   return CFG.MAP + '?' + qsBuild(pairs.concat(fwd()));
 }
-function exoUrl(){
-  return CFG.EXO + '?' + qsBuild([['utm_source','testas'], ['utm_medium','result'],
-    ['utm_campaign', campaign()]].concat(fwd()));
-}
+/* puslapio kanalas kaip kv-track.js: ?src → utm_source → direct */
+function pageSrc(){ return String(CTX.src || CTX.utm_source || 'direct').slice(0, 40); }
 function shareUrl(){
   return CFG.SELF + '?' + qsBuild([['utm_source','testas'], ['utm_medium','share'],
     ['utm_campaign', campaign()]]);
@@ -436,14 +437,14 @@ function qScreen(i, n){
 var LIMITS = [
   ['①', 'kas siūloma VAIKO mokykloje'],
   ['②', 'ar tėvai gali nuvežti'],
-  ['③', 'ar būrelis atitinka vaiko interesą — ir ar leidžia jį KEISTI'],
+  ['③', 'ar būrelis atitinka vaiko interesą ir ar leidžia jį KEISTI'],
   ['④', 'nepatogu registruotis, keisti ar atšaukti'],
   ['⑤', 'kaina ne toje ribose']
 ];
 var CHURN_TILES = [
   ['37,8', '%', 'palieka per pirmą ciklą'],
-  ['26,7', '%', '#1 priežastis — nuobodulys'],
-  ['1,6',  '%', 'kaina — tik tiek']
+  ['26,7', '%', '#1 priežastis: nuobodulys'],
+  ['1,6',  '%', 'kaina: tik tiek']
 ];
 
 var INTERS = {
@@ -452,7 +453,7 @@ var INTERS = {
     title:   'Ką Lietuva iš tikrųjų siūlo',
     num:     nf(T.SUPPLY_TOTAL.programs),
     cap:     'programos Vilniuje',
-    line:    'Sportas — kas trečia Vilniaus programa. Robotika — kas septinta.',
+    line:    'Sportas: kas trečia Vilniaus programa. Robotika: kas septinta.',
     src:     'NŠPR registras · 2 624 Vilniaus programos, 2026',
     body:    supplyBody
   },
@@ -461,8 +462,8 @@ var INTERS = {
     title:   'Kas iš tiesų riboja pasirinkimą',
     num:     '5',
     cap:     'ribos, apie kurias retai kalbame',
-    line:    'Renkamės iš to, kas pasiekiama. Šis testas — apie tai, kas TINKA.',
-    src:     'Kris Vasiliauskas · 13 m. · 1 600+ šeimų',
+    line:    'Renkamės iš to, kas pasiekiama. Šis testas apie tai, kas TINKA.',
+    src:     'Kris Vasiliauskas · daugiau nei dešimtmetis su būreliais · 1 600+ šeimų',
     body:    limitsBody
   },
   churn: {
@@ -704,29 +705,38 @@ function renderResult(res){
 
   /* ---- a. tapatybės kortelė ---- */
   var id = h('div', { class:'identity' }, [
-    h('div', { class:'emo', 'aria-hidden':'true', text: w.map(function (t){ return t.emoji; }).join(' ') }),
+    h('div', { class:'kv-thumb-row' }, [
+      kvThumb('profile'),
+      h('div', { class:'emo', 'aria-hidden':'true', text: w.map(function (t){ return t.emoji; }).join(' ') })
+    ]),
     h('h2', { id:'resName', text: w.map(function (t){ return t.name; }).join('–') }),
     h('p', { class:'claim', text: w.map(function (t){ return t.claim; }).join(' ') })
   ]);
   w.forEach(function (t){ id.appendChild(h('p', { class:'desc', text: t.desc })); });
   if (res.manyTied){
     id.appendChild(h('p', { class:'mixnote', text:
-      'Net trys ar daugiau tipų surinko po lygiai — sakome tai atvirai. Jūsų vaiko profilis kol kas platus, ' +
+      'Net trys ar daugiau tipų surinko po lygiai, sakome tai atvirai. Tavo vaiko profilis kol kas platus, ' +
       'ir tai visiškai normalu, ypač jaunesniame amžiuje. Rodome dvi ryškiausias kryptis, bet verta išbandyti ' +
       'plačiau ir pakartoti testą po pusmečio.' }));
   } else if (res.mixed){
     id.appendChild(h('p', { class:'mixnote', text:
-      'Du tipai surinko lygiai tiek pat taškų. Tai ne testo klaida ir ne „neaiškus“ vaikas — jūsų vaikas ' +
-      'tikrai turi dvi vienodai stiprias puses. Tai naudinga: ieškokite veiklos, kurioje telpa abi, arba ' +
-      'derinkite dvi skirtingas.' }));
+      'Du tipai surinko lygiai tiek pat taškų. Tai ne testo klaida ir ne „neaiškus“ vaikas: tavo vaikas ' +
+      'tikrai turi dvi vienodai stiprias puses. Tai naudinga. Ieškok veiklos, kurioje telpa abi, arba ' +
+      'derink dvi skirtingas.' }));
   } else if (res.closeRunnerUp && res.runnerUp){
     var ru = T.byKey(res.runnerUp);
     if (ru) id.appendChild(h('p', { class:'mixnote', text:
-      'Labai arti liko ir ' + ru.emoji + ' ' + ru.name + ' — skirtumas vos vienas taškas. Vertėtų pažiūrėti ir tą kryptį.' }));
+      'Labai arti liko ir ' + ru.emoji + ' ' + ru.name + '. Skirtumas vos vienas taškas. Vertėtų pažiūrėti ir tą kryptį.' }));
   }
   root.appendChild(id);
 
-  /* ---- a2. naujienlaiškis (pagrindinė vieta, iškart po rezultatu) ---- */
+  /* skaitiklio kabliukas: realaus „N tėvų atliko testą“ skaičiaus dar nėra
+     (link-stats skaičiuoja tik nuorodas, GA4/Umami tik po sutikimo), todėl
+     puslapyje jokio skaičiaus, tik įvykis, iš kurio jį vėliau suskaičiuosim. */
+  kvClickEv('test_result_view', 'result');
+
+  /* ---- a2. naujienlaiškis (pagrindinė vieta, iškart po verdiktu) ---- */
+  root.appendChild(nlProof());
   root.appendChild(nlCard('top'));
 
   /* ---- b. profilis ---- */
@@ -789,13 +799,13 @@ function renderResult(res){
         nf(f.supply.providers) + ' ' +
         plural(f.supply.providers, 'teikėjas', 'teikėjai', 'teikėjų') }),
       f.supply.programs < 50
-        ? h('p', { class:'fam-thin', text:'Tokių Vilniuje mažai — verta pažiūrėti ir kitą šeimą.' })
+        ? h('p', { class:'fam-thin', text:'Tokių Vilniuje mažai, verta pažiūrėti ir kitą šeimą.' })
         : null
     ]);
     a.onclick = function (){ ev('family_click', { topic:f.topic, weight:f.weight, winner: res.winners.join('-') }); };
     fbox.appendChild(a);
   });
-  root.appendChild(section('🎯 Kas tinka jūsų vaikui', fbox));
+  root.appendChild(section('🎯 Kas tinka tavo vaikui', fbox));
 
   /* ---- e. kaip ugdyti namuose (mišriam — abiejų tipų, be dublikatų, max 4) ---- */
   var tips = [], maxLen = 0;
@@ -834,46 +844,281 @@ function renderResult(res){
   root.appendChild(disc);
 
   /* ---- i. mygtukai ---- */
-  var topTopic = fams.length ? fams[0].topic : 'sportas';
+  /* Žemėlapio nuoroda „Mano būrelių žemėlapis“: bias vartai 2026-10-05.
+     TAISYKLĖ: atidarome VISAS temas su aukščiausiu svoriu (lygiosios neskaldomos
+     pagal pasiūlos dydį). Žemėlapis priima sąrašą ?tema=a,b (bureliu-zemelapis
+     app.js: o.tema.split(',')). Anksčiau lygiosios rikiuotos pagal pasiūlą, todėl
+     Statytojui visada atsidarydavo technologijos, o kalbos/šokis/menai/teatras niekada.
+     Vienas laimėtojas → ką atidaro:
+       Statytojas  → technologijos, menai
+       Tyrinėtojas → gamta
+       Atlikėjas   → teatras, muzika, šokis
+       Strategas   → protas
+       Judantis    → sportas, šokis
+       Jungėjas    → kita, kalbos
+     Mišrus profilis → visų laimėjusių tipų 3 balų temų sąjunga. */
+  var topW = fams.length ? fams[0].weight : 0;
+  var topTopic = fams.length
+    ? T.familiesFor(res.winners).filter(function (f){ return f.weight === topW; }).map(function (f){ return f.topic; })
+    : ['sportas'];
   var ctas = h('div', { class:'ctas' });
 
-  var bMap = h('a', { class:'btn btn-primary', href: mapUrl(topTopic, 'result-cta'),
-                      target:'_blank', rel:'noopener', text:'Rasti būrelius žemėlapyje →' });
-  bMap.onclick = function (){ ev('result_cta_click', { label:'zemelapis', topic:topTopic }); };
+  /* „Kur ieškoti būrelių“: oficialus Vilniaus žemėlapis · mano prototipas · bureliai.lt laukiančiųjų sąrašas */
+  root.appendChild(whereCard(topTopic));
 
-  var bExo = h('a', { class:'btn btn-outline', href: exoUrl(), target:'_blank', rel:'noopener',
-                      text:'Visi būreliai → bureliai.lt' });
-  bExo.onclick = function (){ ev('result_cta_click', { label:'bureliai' }); };
+  /* ---- i2. naujienlaiškis (antra vieta: iškart po „Kur ieškoti būrelių“) ---- */
+  root.appendChild(nlCard('end'));
 
   var bShare = h('button', { class:'btn btn-ghost', type:'button', text:'Pasidalinti rezultatu' });
   bShare.onclick = shareResult;
 
-  var bAgain = h('button', { class:'btn btn-ghost', type:'button', text:'Turite daugiau vaikų? Pakartokit' });
+  var bAgain = h('button', { class:'btn btn-ghost', type:'button', text:'Turi daugiau vaikų? Pakartok' });
   bAgain.onclick = function (){ ev('result_cta_click', { label:'kitas_vaikas' }); resetQuiz(true); };
 
   var bHome = h('button', { class:'btn btn-ghost', type:'button', text:'Į pradžią' });
   bHome.onclick = function (){ ev('result_cta_click', { label:'i_pradzia' }); resetQuiz(false); };
 
-  [bMap, bExo, bShare, bAgain, bHome].forEach(function (b){ ctas.appendChild(b); });
+  [bShare, bAgain, bHome].forEach(function (b){ ctas.appendChild(b); });
   root.appendChild(ctas);
 
   /* ---- j. sąžiningumo eilutė ---- */
   root.appendChild(h('p', { class:'honesty', text: T.HONESTY }));
 
-  /* ---- j2. naujienlaiškis (antra vieta tiems, kas perskaitė viską) ---- */
-  root.appendChild(nlCard('end'));
-
   /* ---- k. atsakomybės eilutė (privaloma — wiki/meta/tool-disclaimer.md) ---- */
   var ai = h('section', { class:'res-sec ai-card' }, [
-    h('p', { class:'ai-label', text:'⚗️ EKSPERIMENTINIS PROTOTIPAS' }),
-    h('p', { class:'ai-p', text:'Šį testą sukūriau su dirbtiniu intelektu. Jis nuolat keičiasi, gali klysti arba pateikti netikslių duomenų — todėl naudokite jį kaip pokalbio su vaiku pradžią, ne kaip galutinę tiesą. Svarbius dalykus visada pasitikrinkite pas patį būrelio vadovą.' }),
-    h('p', { class:'ai-p', text:'Įrankiai nemokami ir kuriami atvirai: noriu, kad augtų visų Lietuvos būrelių kokybė ir pasiūla — ne tik mano. Radote klaidą, netikslumą ar nesąžiningumą? Parašykite — taisau greitai.' })
+    h('p', { class:'ai-label', text:'⚗️ Eksperimentinis prototipas' }),
+    h('p', { class:'ai-p', text:'Šį testą sukūriau su dirbtiniu intelektu. Jis nuolat keičiasi, gali klysti arba pateikti netikslių duomenų, todėl naudok jį kaip pokalbio su vaiku pradžią, ne kaip galutinę tiesą. Svarbius dalykus visada pasitikrink pas patį būrelio vadovą.' }),
+    h('p', { class:'ai-p', text:'Įrankiai nemokami ir kuriami atvirai: noriu, kad augtų visų Lietuvos būrelių kokybė ir pasiūla, ne tik mano. Radai klaidą, netikslumą ar nesąžiningumą? Parašyk, taisau greitai.' })
   ]);
   var aiLink = h('a', { class:'ai-link', text:'Pranešti apie klaidą → krisvas.lt' });
   aiLink.href = 'https://krisvas.lt'; aiLink.target = '_blank'; aiLink.rel = 'noopener noreferrer';
   aiLink.onclick = function (){ ev('result_cta_click', { label:'pranesti_klaida' }); };
   ai.appendChild(aiLink);
   root.appendChild(ai);
+}
+
+/* ============================ kur ieškoti būrelių ============================
+   Kris sprendimas 2026-10-04: jokio AI sugeneruoto bureliai.lt varianto.
+   Eilė: oficialus savivaldybės žemėlapis pirmas, mano prototipas antras,
+   bureliai.lt tik kaip laukiančiųjų sąrašas. Teikėjai neranguojami.
+   Laukiančiųjų el. paštas → mailerlite-subscribe {list:'waitlist'} →
+   lentelė waitlist_signups (NE naujienlaiškis) + laiškas Kris'ui.
+   El. paštas NIEKADA nepatenka į analitikos įvykį. */
+var WL = {
+  busy: false,
+  done: (function (){ try { var v = localStorage.getItem('bt-wl'); return (v === 'ok' || v === 'dup') ? v : ''; } catch (e) { return ''; } })()
+};
+var WL_TXT = {
+  consent: 'Sutinku, kad parašytum man apie bureliai.lt paleidimą. Įrašysiu ir į savaitinį laišką (205 tėvai). Atsisakyti galima vienu paspaudimu.',
+  ok:      'Ačiū! Parašysiu, kai bureliai.lt startuos.',
+  dup:     'Tu jau sąraše, ačiū!',
+  badMail: 'Patikrink el. pašto adresą.',
+  noCons:  'Pažymėk sutikimą, kad galėčiau tau parašyti.',
+  slow:    'Per daug bandymų iš eilės. Palauk minutę ir bandyk dar kartą.',
+  err:     'Nepavyko, pabandyk dar kartą arba parašyk '
+};
+
+function kvClickEv(label, place, topic){
+  var p = { label: label, place: place, source: pageSrc() };
+  if (topic) p.topic = topic;
+  ev('kv_click', p); evClarity('kv_click');
+}
+function kvClick(label, topic){ kvClickEv(label, 'kur_ieskoti', topic); }
+
+/* ---- KV-THUMBS: vienos linijos SVG miniatiūros (raudonas kontūras) ---- */
+var THUMBS = {
+  /* šešiakampis radaras = šeši vaiko tipai */
+  profile: [['path', { d:'M24 5 40.5 14.5v19L24 43 7.5 33.5v-19Z' }],
+            ['path', { d:'M24 14 32.7 19v10L24 34l-8.7-5V19Z' }],
+            ['path', { d:'M24 5v38M7.5 14.5l33 19M40.5 14.5l-33 19', 'stroke-width':'1' }],
+            ['circle', { cx:'24', cy:'24', r:'2.5' }]],
+  /* sulankstytas žemėlapis su smeigtuku */
+  map:     [['path', { d:'M5 12l12-5 14 5 12-5v29l-12 5-14-5-12 5Z' }],
+            ['path', { d:'M17 7v29M31 12v29', 'stroke-width':'1' }],
+            ['path', { d:'M24 31s-6-6.2-6-10.5a6 6 0 0 1 12 0C30 24.8 24 31 24 31Z' }],
+            ['circle', { cx:'24', cy:'20.5', r:'2' }]]
+};
+function kvThumb(name){
+  var NS = 'http://www.w3.org/2000/svg';
+  var svg = document.createElementNS(NS, 'svg');
+  var a = { 'class':'kv-thumb', viewBox:'0 0 48 48', width:'56', height:'56', fill:'none',
+            stroke:'currentColor', 'stroke-width':'1.75', 'stroke-linecap':'round',
+            'stroke-linejoin':'round', 'aria-hidden':'true', focusable:'false' };
+  for (var k in a) svg.setAttribute(k, a[k]);
+  (THUMBS[name] || []).forEach(function (el){
+    var e = document.createElementNS(NS, el[0]);
+    for (var j in el[1]) e.setAttribute(j, el[1][j]);
+    svg.appendChild(e);
+  });
+  return svg;
+}
+
+/* page_url: be kv/fbclid/hash, su ?src ir utm_* (kad matytųsi kanalas) */
+function wlPageUrl(){
+  var keep = ['src=' + encodeURIComponent(pageSrc())];
+  location.search.replace(/^\?/, '').split('&').forEach(function (kv){
+    if (/^utm_[a-z_]+=/i.test(kv)) keep.push(kv);
+  });
+  return location.origin + location.pathname + '?' + keep.join('&');
+}
+
+function whereCard(topTopic){
+  var box = h('section', { class:'res-sec where-card', 'aria-labelledby':'whereT' });
+  box.appendChild(h('div', { class:'kv-thumb-row' }, [
+    kvThumb('map'),
+    h('h3', { id:'whereT', text:'Kur ieškoti būrelių' })
+  ]));
+
+  /* a. oficialus Vilniaus žemėlapis */
+  var aV = h('a', { class:'btn btn-primary where-btn', href: CFG.VLN, target:'_blank',
+                    rel:'noopener noreferrer', 'data-track':'vilnius-oficialus',
+                    text:'Vilniaus miesto oficialus žemėlapis →' });
+  aV.onclick = function (){ kvClick('vilnius_oficialus'); };
+  box.appendChild(h('div', { class:'where-item' }, [
+    aV,
+    h('p', { class:'where-note', text:'Tik Vilnius. Mes su komanda statom visos Lietuvos žemėlapį.' })
+  ]));
+
+  /* b. mano prototipas (bureliu-zemelapis), atsidaro su vaiko tema */
+  var aP = h('a', { class:'btn btn-outline where-btn', href: mapUrl(topTopic, 'result-cta'),
+                    target:'_blank', rel:'noopener', 'data-track':'prototipas-zemelapis',
+                    text:'Mano būrelių žemėlapis →' });
+  aP.onclick = function (){
+    kvClick('prototipas_zemelapis', topTopic.join(','));
+    ev('result_cta_click', { label:'zemelapis', topic:topTopic.join(',') });
+  };
+  box.appendChild(h('div', { class:'where-item' }, [
+    h('span', { class:'where-tag', text:'Prototipas (mano)' }),
+    aP,
+    h('p', { class:'where-note', text:'Pasidariau iš atvirų duomenų, kol kas tik Vilnius. Atsidarys su tavo vaikui tinkančiomis temomis. Gali klysti, pasitikrink pas vadovą.' })
+  ]));
+
+  /* b2. ne Vilnius: tas pats el. pašto/naujienlaiškio komponentas, source test-nonvilnius */
+  var nvBtn = h('button', { class:'where-nv', type:'button', 'aria-expanded':'false', 'data-track':'ne-vilnius',
+                            text:'Ne Vilnius? Parašyk man, kur ieškai, ir gausi atsakymą el. paštu.' });
+  var nvItem = h('div', { class:'where-item' }, [nvBtn]);
+  nvBtn.onclick = function (){
+    var open = nvBtn.getAttribute('aria-expanded') === 'true';
+    if (!open && !nvItem.querySelector('.nl-card')) nvItem.appendChild(nlCard('nonvilnius'));
+    var c = nvItem.querySelector('.nl-card'); if (c) c.hidden = open;
+    nvBtn.setAttribute('aria-expanded', open ? 'false' : 'true');
+    if (!open){ kvClick('ne_vilnius'); var i = c && c.querySelector('input[type=email]'); if (i) try { i.focus(); } catch (e) {} }
+  };
+  box.appendChild(nvItem);
+
+  /* c. bureliai.lt netrukus: laukiančiųjų sąrašas */
+  box.appendChild(wlBlock());
+  return box;
+}
+
+function wlThanks(wrap){
+  wrap.innerHTML = '';
+  wrap.classList.add('wl-done');
+  wrap.appendChild(h('span', { class:'nl-ok-ic', 'aria-hidden':'true', text:'✓' }));
+  var p = h('p', { class:'nl-thanks', role:'status', tabindex:'-1', text: WL.done === 'dup' ? WL_TXT.dup : WL_TXT.ok });
+  wrap.appendChild(p);
+  return p;
+}
+
+function wlMsg(wrap, text, withMail){
+  var m = wrap.querySelector('.nl-msg'); if (!m) return;
+  m.innerHTML = '';
+  if (!text){ m.hidden = true; return; }
+  m.hidden = false;
+  m.appendChild(document.createTextNode(text));
+  if (withMail) m.appendChild(h('a', { href:'mailto:' + NL.MAIL, text: NL.MAIL }));
+}
+
+function wlBlock(){
+  var wrap = h('div', { class:'where-item wl-block' });
+  wrap.appendChild(h('p', { class:'wl-t', text:'bureliai.lt netrukus' }));
+  if (WL.done){ wlThanks(wrap); return wrap; }
+  wrap.appendChild(h('p', { class:'where-note', text:'Būk vienas pirmųjų. Palik el. paštą, parašysiu, kai paleisim.' }));
+
+  var email = h('input', { id:'wlEmail', class:'nl-in', type:'email', name:'email', inputmode:'email',
+                           autocomplete:'email', autocapitalize:'off', spellcheck:'false',
+                           placeholder:'tavo@pastas.lt', required:'required', 'aria-describedby':'wlMsg' });
+  var hp = h('input', { id:'wlX', type:'text', name:'wl_hp_x', tabindex:'-1', autocomplete:'off', value:'' });
+  var cons = h('input', { id:'wlCons', class:'nl-cb', type:'checkbox', name:'consent', required:'required' });
+  var priv = h('a', { href: NL.PRIV, target:'_blank', rel:'noopener', text:'Privatumas' });
+  var btn = h('button', { class:'btn btn-primary nl-btn', type:'submit' }, [
+    h('span', { class:'nl-spin', 'aria-hidden':'true' }),
+    h('span', { class:'nl-btn-t', text:'Noriu būti pirmas' })
+  ]);
+  var form = h('form', { class:'nl-form wl-form', novalidate:'novalidate', 'data-clarity-mask':'true' }, [
+    h('label', { class:'sr-only', 'for':'wlEmail', text:'El. pašto adresas' }),
+    email,
+    h('div', { class:'nl-hp', 'aria-hidden':'true' }, [ h('label', { 'for':'wlX', text:'Nepildyk' }), hp ]),
+    h('label', { class:'nl-consent', 'for':'wlCons' }, [ cons, h('span', null, [WL_TXT.consent + ' ', priv]) ]),
+    btn,
+    h('p', { id:'wlMsg', class:'nl-msg', role:'alert', hidden:'hidden' }),
+    h('p', { class:'wl-coi', text:'Atvirai: bureliai.lt kuria ExoClass, kurios bendraįkūrėjas esu aš. Sąraše nė vienas teikėjas negaus pirmumo.' })
+  ]);
+  wrap.appendChild(form);
+
+  function busy(on){
+    WL.busy = on; btn.disabled = on; btn.classList.toggle('is-busy', on);
+    btn.setAttribute('aria-busy', on ? 'true' : 'false');
+  }
+
+  form.onsubmit = function (e){
+    if (e && e.preventDefault) e.preventDefault();
+    if (WL.busy || WL.done) return;
+    var val = String(email.value || '').trim();
+    email.removeAttribute('aria-invalid'); cons.removeAttribute('aria-invalid');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val)){
+      email.setAttribute('aria-invalid', 'true'); wlMsg(wrap, WL_TXT.badMail); email.focus(); return;
+    }
+    if (!cons.checked){
+      cons.setAttribute('aria-invalid', 'true'); wlMsg(wrap, WL_TXT.noCons); cons.focus(); return;
+    }
+    wlMsg(wrap, '');
+    busy(true);
+    ev('bureliai_waitlist_submit', { place:'kur_ieskoti', source: pageSrc() });
+    evClarity('bureliai_waitlist_submit');
+
+    var finished = false, ctrl = null;
+    try { ctrl = new AbortController(); } catch (x) {}
+    var to = setTimeout(function (){
+      if (finished) return;
+      try { if (ctrl) ctrl.abort(); } catch (x) {}
+      fail('timeout', 0);
+    }, NL.TIMEOUT_MS);
+    function end(){ finished = true; clearTimeout(to); busy(false); }
+    function fail(kind, status){
+      if (finished) return;
+      end();
+      ev('bureliai_waitlist_error', { place:'kur_ieskoti', kind: kind, status: status || 0 });
+      wlMsg(wrap, kind === 'rate' ? WL_TXT.slow : WL_TXT.err, kind !== 'rate');
+    }
+    var body = JSON.stringify({
+      email: val, language: 'lt', list: 'waitlist', role: 'parent',
+      type: 'bureliai-waitlist', source: 'bureliai-waitlist', src: pageSrc(),
+      page_url: wlPageUrl(), consent: true, company: hp.value || ''
+    });
+    fetch(CFG.WL_URL, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'apikey': NL.KEY, 'Authorization': 'Bearer ' + NL.KEY },
+      body: body,
+      signal: ctrl ? ctrl.signal : undefined
+    }).then(function (r){
+      return r.json().catch(function (){ return null; }).then(function (d){ return { r:r, d:d }; });
+    }).then(function (x){
+      if (finished) return;
+      if (x.r.status === 429){ fail('rate', 429); return; }
+      if (!x.r.ok || !x.d || !x.d.ok){ fail('http', x.r.status); return; }
+      end();
+      WL.done = x.d.duplicate ? 'dup' : 'ok';
+      try { localStorage.setItem('bt-wl', WL.done); } catch (y) {}
+      ev('bureliai_waitlist_ok', { place:'kur_ieskoti', duplicate: x.d.duplicate ? 1 : 0 });
+      evClarity('bureliai_waitlist_ok');
+      var p = wlThanks(wrap);
+      try { p.focus({ preventScroll:true }); } catch (y) {}
+      /* sutikimas apima ir savaitinį laišką: tas pats naujienlaiškio kvietimas, source bureliai-waitlist */
+      if (!NL.done) nlSend(val, 'bureliai-waitlist', 'waitlist', hp.value || '');
+    }).catch(function (){ fail(finished ? 'timeout' : 'network', 0); });
+  };
+  return wrap;
 }
 
 /* ============================ naujienlaiškis ============================
@@ -893,17 +1138,36 @@ var NL_TXT = {
   top: { t:'Viena naudinga mintis tėvams kas savaitę',
          v:'Trumpai, moksliškai pagrįstai, apie būrelius ir vaiko motyvaciją. 2 min. skaitymo.' },
   end: { t:'Patiko? Viena mintis kas savaitę', v:'' },
-  proof:   'Jau skaito 179 tėvai',
+  nonvilnius: { t:'Kur ieškai būrelio?', v:'Palik el. paštą. Atrašysiu, paklausiu miesto ir pasidalinsiu, ką žinau. Įrašysiu ir į savaitinį laišką.' },
+  proof:   'Jau skaito 205 tėvai',   /* MailerLite group_subscribers, 2026-10-04 */
   consent: 'Sutinku gauti Kris Vasiliausko naujienlaiškį. Atsisakyti galima bet kada.',
   ok:      'Ačiū! Kitas laiškas ateis per 7 dienas.',
-  dup:     'Jūs jau prenumeruojate, ačiū!',
-  badMail: 'Patikrinkite el. pašto adresą.',
-  noCons:  'Pažymėkite sutikimą, kad galėčiau siųsti laiškus.',
-  slow:    'Per daug bandymų iš eilės. Palaukite minutę ir spauskite „Gauti“ dar kartą.',
-  err:     'Nepavyko, pabandykite dar kartą arba parašykite '
+  dup:     'Tu jau prenumeruoji, ačiū!',
+  badMail: 'Patikrink el. pašto adresą.',
+  noCons:  'Pažymėk sutikimą, kad galėčiau siųsti laiškus.',
+  slow:    'Per daug bandymų iš eilės. Palauk minutę ir spausk „Gauti“ dar kartą.',
+  err:     'Nepavyko, pabandyk dar kartą arba parašyk '
 };
 
 function nlEv(name, p){ ev(name, p); evClarity(name); }
+var NL_SRC = { top:'test-result', end:'test-end', nonvilnius:'test-nonvilnius' };
+
+/* tylus naujienlaiškio kvietimas (iš laukiančiųjų formos, kai pažymėtas sutikimas) */
+function nlSend(email, source, place, company){
+  nlEv('nl_submit', { place: place });
+  fetch(NL.URL, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'apikey': NL.KEY, 'Authorization': 'Bearer ' + NL.KEY },
+    body: JSON.stringify({ email: email, language: 'lt', source: source, page_url: nlPageUrl(), consent: true, company: company })
+  }).then(function (r){ return r.json().catch(function (){ return null; }).then(function (d){ return { r:r, d:d }; }); })
+    .then(function (x){
+      if (!x.r.ok || !x.d || !x.d.ok){ nlEv('nl_error', { place: place, kind:'http', status: x.r.status }); return; }
+      NL.done = x.d.duplicate ? 'dup' : 'ok';
+      try { localStorage.setItem('bt-nl', NL.done); } catch (e) {}
+      nlEv('nl_ok', { place: place, duplicate: x.d.duplicate ? 1 : 0 });
+      nlSyncAll(null);
+    }).catch(function (){ nlEv('nl_error', { place: place, kind:'network', status: 0 }); });
+}
 
 /* page_url be užklausos parametrų, išskyrus utm_* (be kv, be hash) */
 function nlPageUrl(){
@@ -925,6 +1189,10 @@ function nlThanks(card, focus){
 }
 
 function nlSyncAll(srcCard){
+  if (NL.done){
+    var pr = document.querySelectorAll('.nl-proof-row');
+    for (var q = 0; q < pr.length; q++) pr[q].hidden = true;
+  }
   var cards = document.querySelectorAll('.nl-card');
   for (var i = 0; i < cards.length; i++){
     var c = cards[i];
@@ -949,6 +1217,19 @@ function nlMsg(card, text, withMail){
   }
 }
 
+/* socialinis įrodymas virš viršutinės kortelės: Kris nuotrauka + tikras skaičius */
+function nlProof(){
+  var row = h('div', { class:'nl-proof-row' });
+  if (NL.done){ row.hidden = true; return row; }
+  row.appendChild(h('img', { class:'nl-avatar', src:'kris.png', alt:'Kris Vasiliauskas',
+                             width:'44', height:'44', loading:'lazy', decoding:'async' }));
+  row.appendChild(h('p', { class:'nl-proof' }, [
+    h('b', { text: NL_TXT.proof }),
+    h('span', { class:'nl-proof-by', text:'Laiškus rašau pats · Kris Vasiliauskas' })
+  ]));
+  return row;
+}
+
 function nlCard(place){
   var tx = NL_TXT[place] || NL_TXT.top;
   var card = h('section', { class:'nl-card nl-' + place, 'data-place': place, 'aria-label':'Naujienlaiškis' });
@@ -957,11 +1238,10 @@ function nlCard(place){
   var idE = 'nlEmail-' + place, idC = 'nlCons-' + place, idH = 'nlX-' + place;
   card.appendChild(h('h3', { class:'nl-t', text: tx.t }));
   if (tx.v) card.appendChild(h('p', { class:'nl-v', text: tx.v }));
-  if (place === 'top') card.appendChild(h('p', { class:'nl-proof', text: NL_TXT.proof }));
 
   var email = h('input', { id:idE, class:'nl-in', type:'email', name:'email', inputmode:'email',
                            autocomplete:'email', autocapitalize:'off', spellcheck:'false',
-                           placeholder:'jusu@pastas.lt', required:'required', 'aria-describedby':'nlMsg-' + place });
+                           placeholder:'tavo@pastas.lt', required:'required', 'aria-describedby':'nlMsg-' + place });
   /* medaus puodas: vardas, kurio naršyklių automatinis pildymas neatpažįsta */
   var hp = h('input', { id:idH, type:'text', name:'nl_hp_x', tabindex:'-1', autocomplete:'off', value:'' });
   var cons = h('input', { id:idC, class:'nl-cb', type:'checkbox', name:'consent', required:'required' });
@@ -976,7 +1256,7 @@ function nlCard(place){
     h('label', { class:'sr-only', 'for':idE, text:'El. pašto adresas' }),
     email,
     h('div', { class:'nl-hp', 'aria-hidden':'true' }, [
-      h('label', { 'for':idH, text:'Nepildykite' }), hp
+      h('label', { 'for':idH, text:'Nepildyk' }), hp
     ]),
     h('label', { class:'nl-consent', 'for':idC }, [
       cons,
@@ -1040,7 +1320,7 @@ function nlSubmit(card, place, email, company){
   }
 
   var body = JSON.stringify({
-    email: email, language: 'lt', source: 'testas_rezultatas',
+    email: email, language: 'lt', source: NL_SRC[place] || 'test-result',
     page_url: nlPageUrl(), consent: true, company: company
   });
   fetch(NL.URL, {
@@ -1194,7 +1474,7 @@ function shareResult(){
   var url  = shareUrl();
   var w    = winnerTypes(S.res);
   var name = w.map(function (t){ return t.name; }).join('–');
-  var text = 'Mano vaiko tipas — ' + name + '. Nemokamas 2 min. būrelių testas tėvams:';
+  var text = 'Mano vaiko tipas: ' + name + '. Nemokamas 2 min. būrelių testas tėvams:';
 
   function fallback(){
     if (navigator.share){
