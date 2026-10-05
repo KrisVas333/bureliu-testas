@@ -436,14 +436,14 @@ function qScreen(i, n){
 var LIMITS = [
   ['①', 'kas siūloma VAIKO mokykloje'],
   ['②', 'ar tėvai gali nuvežti'],
-  ['③', 'ar būrelis atitinka vaiko interesą — ir ar leidžia jį KEISTI'],
+  ['③', 'ar būrelis atitinka vaiko interesą ir ar leidžia jį KEISTI'],
   ['④', 'nepatogu registruotis, keisti ar atšaukti'],
   ['⑤', 'kaina ne toje ribose']
 ];
 var CHURN_TILES = [
   ['37,8', '%', 'palieka per pirmą ciklą'],
-  ['26,7', '%', '#1 priežastis — nuobodulys'],
-  ['1,6',  '%', 'kaina — tik tiek']
+  ['26,7', '%', '#1 priežastis: nuobodulys'],
+  ['1,6',  '%', 'kaina: tik tiek']
 ];
 
 var INTERS = {
@@ -452,7 +452,7 @@ var INTERS = {
     title:   'Ką Lietuva iš tikrųjų siūlo',
     num:     nf(T.SUPPLY_TOTAL.programs),
     cap:     'programos Vilniuje',
-    line:    'Sportas — kas trečia Vilniaus programa. Robotika — kas septinta.',
+    line:    'Sportas: kas trečia Vilniaus programa. Robotika: kas septinta.',
     src:     'NŠPR registras · 2 624 Vilniaus programos, 2026',
     body:    supplyBody
   },
@@ -461,7 +461,7 @@ var INTERS = {
     title:   'Kas iš tiesų riboja pasirinkimą',
     num:     '5',
     cap:     'ribos, apie kurias retai kalbame',
-    line:    'Renkamės iš to, kas pasiekiama. Šis testas — apie tai, kas TINKA.',
+    line:    'Renkamės iš to, kas pasiekiama. Šis testas apie tai, kas TINKA.',
     src:     'Kris Vasiliauskas · daugiau nei dešimtmetis su būreliais · 1 600+ šeimų',
     body:    limitsBody
   },
@@ -725,7 +725,7 @@ function renderResult(res){
   } else if (res.closeRunnerUp && res.runnerUp){
     var ru = T.byKey(res.runnerUp);
     if (ru) id.appendChild(h('p', { class:'mixnote', text:
-      'Labai arti liko ir ' + ru.emoji + ' ' + ru.name + ' — skirtumas vos vienas taškas. Vertėtų pažiūrėti ir tą kryptį.' }));
+      'Labai arti liko ir ' + ru.emoji + ' ' + ru.name + '. Skirtumas vos vienas taškas. Vertėtų pažiūrėti ir tą kryptį.' }));
   }
   root.appendChild(id);
 
@@ -798,7 +798,7 @@ function renderResult(res){
         nf(f.supply.providers) + ' ' +
         plural(f.supply.providers, 'teikėjas', 'teikėjai', 'teikėjų') }),
       f.supply.programs < 50
-        ? h('p', { class:'fam-thin', text:'Tokių Vilniuje mažai — verta pažiūrėti ir kitą šeimą.' })
+        ? h('p', { class:'fam-thin', text:'Tokių Vilniuje mažai, verta pažiūrėti ir kitą šeimą.' })
         : null
     ]);
     a.onclick = function (){ ev('family_click', { topic:f.topic, weight:f.weight, winner: res.winners.join('-') }); };
@@ -892,7 +892,7 @@ var WL = {
   done: (function (){ try { var v = localStorage.getItem('bt-wl'); return (v === 'ok' || v === 'dup') ? v : ''; } catch (e) { return ''; } })()
 };
 var WL_TXT = {
-  consent: 'Sutinku, kad parašytum man apie bureliai.lt paleidimą. Tai ne naujienlaiškis, atsisakyti gali bet kada.',
+  consent: 'Sutinku, kad parašytum man apie bureliai.lt paleidimą. Įrašysiu ir į savaitinį laišką (205 tėvai). Atsisakyti galima vienu paspaudimu.',
   ok:      'Ačiū! Parašysiu, kai bureliai.lt startuos.',
   dup:     'Tu jau sąraše, ačiū!',
   badMail: 'Patikrink el. pašto adresą.',
@@ -976,6 +976,19 @@ function whereCard(topTopic){
     h('p', { class:'where-note', text:'Pasidariau iš atvirų duomenų, kol kas tik Vilnius. Atsidarys su tavo vaikui tinkančia tema. Gali klysti, pasitikrink pas vadovą.' })
   ]));
 
+  /* b2. ne Vilnius: tas pats el. pašto/naujienlaiškio komponentas, source test-nonvilnius */
+  var nvBtn = h('button', { class:'where-nv', type:'button', 'aria-expanded':'false', 'data-track':'ne-vilnius',
+                            text:'Ne Vilnius? Parašyk man, kur ieškai, ir gausi atsakymą el. paštu.' });
+  var nvItem = h('div', { class:'where-item' }, [nvBtn]);
+  nvBtn.onclick = function (){
+    var open = nvBtn.getAttribute('aria-expanded') === 'true';
+    if (!open && !nvItem.querySelector('.nl-card')) nvItem.appendChild(nlCard('nonvilnius'));
+    var c = nvItem.querySelector('.nl-card'); if (c) c.hidden = open;
+    nvBtn.setAttribute('aria-expanded', open ? 'false' : 'true');
+    if (!open){ kvClick('ne_vilnius'); var i = c && c.querySelector('input[type=email]'); if (i) try { i.focus(); } catch (e) {} }
+  };
+  box.appendChild(nvItem);
+
   /* c. bureliai.lt netrukus: laukiančiųjų sąrašas */
   box.appendChild(wlBlock());
   return box;
@@ -1022,7 +1035,7 @@ function wlBlock(){
     h('label', { class:'nl-consent', 'for':'wlCons' }, [ cons, h('span', null, [WL_TXT.consent + ' ', priv]) ]),
     btn,
     h('p', { id:'wlMsg', class:'nl-msg', role:'alert', hidden:'hidden' }),
-    h('p', { class:'wl-coi', text:'Atvirai: bureliai.lt kuria ExoClass, kurios bendraįkūrėjis esu aš. Sąraše nė vienas teikėjas negaus pirmumo.' })
+    h('p', { class:'wl-coi', text:'Atvirai: bureliai.lt kuria ExoClass, kurios bendraįkūrėjas esu aš. Sąraše nė vienas teikėjas negaus pirmumo.' })
   ]);
   wrap.appendChild(form);
 
@@ -1084,6 +1097,8 @@ function wlBlock(){
       evClarity('bureliai_waitlist_ok');
       var p = wlThanks(wrap);
       try { p.focus({ preventScroll:true }); } catch (y) {}
+      /* sutikimas apima ir savaitinį laišką: tas pats naujienlaiškio kvietimas, source bureliai-waitlist */
+      if (!NL.done) nlSend(val, 'bureliai-waitlist', 'waitlist', hp.value || '');
     }).catch(function (){ fail(finished ? 'timeout' : 'network', 0); });
   };
   return wrap;
@@ -1106,6 +1121,7 @@ var NL_TXT = {
   top: { t:'Viena naudinga mintis tėvams kas savaitę',
          v:'Trumpai, moksliškai pagrįstai, apie būrelius ir vaiko motyvaciją. 2 min. skaitymo.' },
   end: { t:'Patiko? Viena mintis kas savaitę', v:'' },
+  nonvilnius: { t:'Kur ieškai būrelio?', v:'Palik el. paštą. Atrašysiu, paklausiu miesto ir pasidalinsiu, ką žinau. Įrašysiu ir į savaitinį laišką.' },
   proof:   'Jau skaito 205 tėvai',   /* MailerLite group_subscribers, 2026-10-04 */
   consent: 'Sutinku gauti Kris Vasiliausko naujienlaiškį. Atsisakyti galima bet kada.',
   ok:      'Ačiū! Kitas laiškas ateis per 7 dienas.',
@@ -1117,6 +1133,24 @@ var NL_TXT = {
 };
 
 function nlEv(name, p){ ev(name, p); evClarity(name); }
+var NL_SRC = { top:'test-result', end:'test-end', nonvilnius:'test-nonvilnius' };
+
+/* tylus naujienlaiškio kvietimas (iš laukiančiųjų formos, kai pažymėtas sutikimas) */
+function nlSend(email, source, place, company){
+  nlEv('nl_submit', { place: place });
+  fetch(NL.URL, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'apikey': NL.KEY, 'Authorization': 'Bearer ' + NL.KEY },
+    body: JSON.stringify({ email: email, language: 'lt', source: source, page_url: nlPageUrl(), consent: true, company: company })
+  }).then(function (r){ return r.json().catch(function (){ return null; }).then(function (d){ return { r:r, d:d }; }); })
+    .then(function (x){
+      if (!x.r.ok || !x.d || !x.d.ok){ nlEv('nl_error', { place: place, kind:'http', status: x.r.status }); return; }
+      NL.done = x.d.duplicate ? 'dup' : 'ok';
+      try { localStorage.setItem('bt-nl', NL.done); } catch (e) {}
+      nlEv('nl_ok', { place: place, duplicate: x.d.duplicate ? 1 : 0 });
+      nlSyncAll(null);
+    }).catch(function (){ nlEv('nl_error', { place: place, kind:'network', status: 0 }); });
+}
 
 /* page_url be užklausos parametrų, išskyrus utm_* (be kv, be hash) */
 function nlPageUrl(){
@@ -1269,7 +1303,7 @@ function nlSubmit(card, place, email, company){
   }
 
   var body = JSON.stringify({
-    email: email, language: 'lt', source: place === 'end' ? 'test-end' : 'test-result',
+    email: email, language: 'lt', source: NL_SRC[place] || 'test-result',
     page_url: nlPageUrl(), consent: true, company: company
   });
   fetch(NL.URL, {
@@ -1423,7 +1457,7 @@ function shareResult(){
   var url  = shareUrl();
   var w    = winnerTypes(S.res);
   var name = w.map(function (t){ return t.name; }).join('–');
-  var text = 'Mano vaiko tipas — ' + name + '. Nemokamas 2 min. būrelių testas tėvams:';
+  var text = 'Mano vaiko tipas: ' + name + '. Nemokamas 2 min. būrelių testas tėvams:';
 
   function fallback(){
     if (navigator.share){

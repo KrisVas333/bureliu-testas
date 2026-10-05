@@ -35,34 +35,34 @@
         'Klausk „kaip tu tai padarei?“, ne „ar gražu?“. Procesas, ne rezultatas, augina atkaklumą.',
         'Retkarčiais statyk POROJE. Darymą tavo vaikas jau turi, augimo zona yra derėjimasis su kitu.'
       ],
-      science: 'Struktūruotos, tikslingos popamokinės veiklos (SAFE kriterijai) duoda matomą efektą; nestruktūruotos — ne. (Durlak ir kt., 2011)'
+      science: 'Struktūruotos, tikslingos popamokinės veiklos (SAFE kriterijai) duoda matomą efektą; nestruktūruotos ne. (Durlak ir kt., 2011)'
     },
     {
       key: 'tyrinetojas', emoji: '🔬', name: 'TYRINĖTOJAS', gen: 'Tyrinėtojo',
       claim: 'Varo klausimas „KODĖL?“.',
       desc: 'Tavo vaikui reikia erdvės eksperimentuoti, klysti ir atrasti pačiam. Atsakymas, duotas per anksti, jam sugadina žaidimą.',
       strength: 'Pats susiranda gilumą ten, kur kiti sustoja ties pirmu atsakymu.',
-      watch: 'Greitai pereina prie kito dalyko — tai ne nepastovumas, o didelis naujumo poreikis.',
+      watch: 'Greitai pereina prie kito dalyko. Tai ne nepastovumas, o didelis naujumo poreikis.',
       topics: { gamta: 3, tech: 2, protas: 2, kita: 2, kalbos: 2, menai: 1, sportas: 0, sokis: 0, muzika: 0, teatras: 0 },
-      ask: '„Kiek pamokoje vietos EKSPERIMENTUI, o kiek — instrukcijai?“',
+      ask: '„Kiek pamokoje vietos EKSPERIMENTUI, o kiek instrukcijai?“',
       tips: [
         'Suk veiklas ratu su struktūra, ne chaotiškai. Įvairovė SU rėmais yra tai, ką OECD vadina pamatiniu vystymusi.',
         'Persakyk „greitai pabosta“ į „didelis naujumo poreikis“: smalsumas yra TOP-10 ateities įgūdis (WEF, 2025).',
         'Duok rinktis iš riboto sąrašo („išsirink 2 iš šių 4“). Taip treniruojasi atsakingas sprendimų priėmimas (CASEL).'
       ],
-      science: 'PSO/OECD 2030 kompasas: vaiko vystymasis remiasi trimis pamatais — pažintiniu, fiziniu ir socialiniu-emociniu, ne vien pažymiais.'
+      science: 'PSO/OECD 2030 kompasas: vaiko vystymasis remiasi trimis pamatais: pažintiniu, fiziniu ir socialiniu-emociniu, ne vien pažymiais.'
     },
     {
       key: 'atlikejas', emoji: '🎭', name: 'ATLIKĖJAS', gen: 'Atlikėjo',
       claim: 'Auga, kai yra MATOMAS.',
       desc: 'Scena, publika ir saviraiška tavo vaikui ne baimė, o kuras. Jam reikia vietos, kur jį pamato, ir tikrų pasirodymų, ne tik repeticijų.',
-      strength: 'Nebijo būti priekyje — o tai daugumai vaikų yra sunkiausia dalis.',
+      strength: 'Nebijo būti priekyje, o tai daugumai vaikų yra sunkiausia dalis.',
       watch: 'Be publikos motyvacija krenta greitai; ieškok veiklų su realiais pasirodymais.',
       topics: { teatras: 3, muzika: 3, sokis: 3, menai: 2, tech: 1, sportas: 1, kalbos: 1, kita: 1, gamta: 0, protas: 0 },
       ask: '„Kaip dažnai vaikai turi tikrus pasirodymus publikai?“',
       tips: [
-        'Grupiniai pasirodymai ugdo ir socialinį sąmoningumą, ir santykių įgūdžius (CASEL) — publikos skaitymas IR YRA empatijos treniruotė.',
-        'Scenos baimė yra treniruoklis, ne problema — drąsa auga tik veikiant nepatogume (VIA charakterio stiprybės).',
+        'Grupiniai pasirodymai ugdo ir socialinį sąmoningumą, ir santykių įgūdžius (CASEL). Publikos skaitymas IR YRA empatijos treniruotė.',
+        'Scenos baimė yra treniruoklis, ne problema. Drąsa auga tik veikiant nepatogume (VIA charakterio stiprybės).',
         'Duok mažas lyderio roles (pravesti apšilimą). Lyderystė ir socialinė įtaka yra #3 ateities įgūdis (WEF, 2025).'
       ],
       science: '2024 m. OECD duomenų analizė: popamokinis menas ir sportas reikšmingai susiję su geresniais paauglių socialiniais-emociniais įgūdžiais.'
@@ -72,13 +72,13 @@
       claim: 'Mąsto SISTEMOMIS.',
       desc: 'Tavo vaikui reikia taisyklių, iššūkio ir erdvės planuoti kelis ėjimus į priekį. Jis nori žinoti, kaip laimima ir kodėl.',
       strength: 'Mato struktūrą ten, kur kiti mato chaosą.',
-      watch: 'Pralaimėjimą gali priimti kaip tapatybės grėsmę — čia reikia suaugusio, kuris to išmokytų.',
+      watch: 'Pralaimėjimą gali priimti kaip tapatybės grėsmę, čia reikia suaugusio, kuris to išmokytų.',
       topics: { protas: 3, tech: 2, kita: 2, sportas: 2, kalbos: 1, gamta: 1, muzika: 0, menai: 0, sokis: 0, teatras: 0 },
       ask: '„Ar yra lygiai, turnyrai, aiški progreso sistema?“',
       tips: [
-        'Strateginiai žaidimai beveik 1:1 treniruoja pasekmių pasvėrimą — atsakingą sprendimų priėmimą (CASEL).',
+        'Strateginiai žaidimai beveik 1:1 treniruoja pasekmių pasvėrimą, atsakingą sprendimų priėmimą (CASEL).',
         'Mokyk pralaimėti kaip DUOMENŲ, ne tapatybės grėsmės. Lankstumas ir atsparumas yra #2 ateities įgūdis (WEF, 2025).',
-        '„Per daug konkurencingas“ dažnai yra neįvardintos stiprybės — teisingumo ir vertinimo (VIA) — pusė. Įvardink ją.'
+        '„Per daug konkurencingas“ dažnai yra neįvardintos stiprybės (teisingumo ir vertinimo, VIA) pusė. Įvardink ją.'
       ],
       science: 'JK švietimo įrodymų fondas (EEF): kokybiškos popamokinės programos vidutiniškai prideda +3 mėnesius akademinės pažangos per metus.'
     },
@@ -86,28 +86,28 @@
       key: 'judantis', emoji: '🏃', name: 'JUDANTIS', gen: 'Judančio',
       claim: 'Mąsto KŪNU.',
       desc: 'Tavo vaikui judesys nėra pertrauka nuo mokymosi. Judesys IR YRA jo mokymosi būdas. Sėdint jo galva dirba lėčiau.',
-      strength: 'Ištvermė ir drąsa fiziniam iššūkiui — pamatas, ant kurio laikosi viskas kita.',
+      strength: 'Ištvermė ir drąsa fiziniam iššūkiui: pamatas, ant kurio laikosi viskas kita.',
       watch: 'Etiketė „neramus“ dažnai reiškia tik tai, kad diena neturėjo pakankamai judesio.',
       topics: { sportas: 3, sokis: 3, gamta: 2, kita: 1, teatras: 1, menai: 0, muzika: 0, tech: 0, kalbos: 0, protas: 0 },
       ask: '„Kiek pamokos minučių vaikas realiai JUDA, o kiek laukia eilėje?“',
       tips: [
-        'Judesys prieš namų darbus, ne po jų — fizinis aktyvumas pagerina dėmesį ir vykdomąsias funkcijas iškart po jo.',
+        'Judesys prieš namų darbus, ne po jų: fizinis aktyvumas pagerina dėmesį ir vykdomąsias funkcijas iškart po jo.',
         'Rinkis pagal apkrovos tipą, ne pagal šaką: vieniems reikia ritmo ir kartojimo, kitiems kovos ir kontakto.',
         'Vienas sportas ištisus metus 6–12 m. amžiuje didina pervargimo traumų riziką, tad kaitaliok sezonus.'
       ],
-      science: 'PSO rekomendacija — 60 min. vidutinio ar intensyvaus judėjimo per dieną 5–17 m. vaikams; Lietuvoje jos nepasiekia dauguma.'
+      science: 'PSO rekomendacija: 60 min. vidutinio ar intensyvaus judėjimo per dieną 5–17 m. vaikams; Lietuvoje jos nepasiekia dauguma.'
     },
     {
       key: 'jungejas', emoji: '🤝', name: 'JUNGĖJAS', gen: 'Jungėjo',
       claim: 'Mokosi per ŽMONES.',
       desc: 'Tavo vaikui svarbiausia, KAS yra šalia. Jis eina ten, kur jaučiasi savas, ir dėl gero santykio ištvers net tai, kas sunku.',
       strength: 'Suburia, sutaiko ir pastebi tą, kuris liko nuošalyje.',
-      watch: 'Gali rinktis būrelį pagal draugą, ne pagal save — verta turėti bent vieną veiklą „tik sau“.',
+      watch: 'Gali rinktis būrelį pagal draugą, ne pagal save, tad verta turėti bent vieną veiklą „tik sau“.',
       topics: { kita: 3, kalbos: 3, sportas: 2, teatras: 2, muzika: 2, sokis: 2, menai: 1, gamta: 1, protas: 1, tech: 0 },
       ask: '„Kaip priimamas naujas vaikas į jau susidraugavusią grupę?“',
       tips: [
-        'Komandinė veikla jam duoda daugiau nei individuali — net jei šaka atrodo „ne ta“.',
-        'Kalbos jam yra ne dalykas, o durys į žmones — todėl kalbų būrelis su pokalbiu veikia, o su pratybų sąsiuviniu ne.',
+        'Komandinė veikla jam duoda daugiau nei individuali, net jei šaka atrodo „ne ta“.',
+        'Kalbos jam yra ne dalykas, o durys į žmones, todėl kalbų būrelis su pokalbiu veikia, o su pratybų sąsiuviniu ne.',
         'Paklausk, su kuo jis norėtų eiti, bet leisk pasirinkti veiklą pačiam. Draugas atveda, turinys išlaiko.'
       ],
       science: '270 034 vaikų metaanalizė: socialinių-emocinių įgūdžių ugdymas pakelia akademinius pasiekimus vidutiniškai 11 procentilių (Durlak ir kt., 2011).'
@@ -133,16 +133,16 @@
       qTeen: 'Kompanijoje tavo vaikas dažniausiai…',
       a: [
         { t: 'strategas', label: 'Sugalvoja taisykles ir žiūri, kad jų laikytųsi' },
-        { t: 'judantis', label: 'Pirmas įsibėgėja — greitis, jėga, judesys' },
+        { t: 'judantis', label: 'Pirmas įsibėgėja: greitis, jėga, judesys' },
         { t: 'jungejas', label: 'Rūpinasi, kad visi būtų priimti' }
       ]
     },
     {
       q: 'Tavo vaiko energija dažniausiai…',
       a: [
-        { t: 'statytojas', label: 'Rankose — visada kažką daro ar taiso' },
-        { t: 'atlikejas', label: 'Scenoje — traukia dėmesį' },
-        { t: 'judantis', label: 'Kojose — sunku nustygti vietoje' }
+        { t: 'statytojas', label: 'Rankose: visada kažką daro ar taiso' },
+        { t: 'atlikejas', label: 'Scenoje: traukia dėmesį' },
+        { t: 'judantis', label: 'Kojose: sunku nustygti vietoje' }
       ]
     },
     {
@@ -156,7 +156,7 @@
     {
       q: 'Kai kažkas nepavyksta, vaikas…',
       a: [
-        { t: 'statytojas', label: 'Bando dar kartą, kitaip — pats' },
+        { t: 'statytojas', label: 'Bando dar kartą, kitaip, pats' },
         { t: 'tyrinetojas', label: 'Klausia, kodėl nepavyko' },
         { t: 'judantis', label: 'Išeina pajudėti ir grįžta' }
       ]
@@ -182,7 +182,7 @@
       a: [
         { t: 'tyrinetojas', label: 'Kai sužino, KAIP kažkas veikia' },
         { t: 'strategas', label: 'Kai LAIMI arba išsprendžia' },
-        { t: 'judantis', label: 'Kai pavyksta fiziškai — greičiau, aukščiau, ilgiau' }
+        { t: 'judantis', label: 'Kai pavyksta fiziškai: greičiau, aukščiau, ilgiau' }
       ]
     },
     {
@@ -239,7 +239,7 @@
   };
   var FREQ_NOTE = {
     '1': 'Vienas kartas per savaitę: rinkis vieną, bet stiprią veiklą.',
-    '2': 'Du kartai — galima derinti judrią ir ramesnę veiklą.',
+    '2': 'Du kartai: galima derinti judrią ir ramesnę veiklą.',
     '3+': 'Trys ir daugiau: svarbu neperkrauti, palik laisvo laiko be plano.',
     nezinau: 'Pradėk nuo vieno karto per savaitę ir stebėk vaiko energiją.'
   };
@@ -357,7 +357,7 @@
 
   var HONESTY = 'Šis testas yra pokalbio su vaiku pradžia, ne diagnozė. Vaikas auga ir keičiasi, tad pakartok po pusmečio.';
 
-  var DISCLOSURE = 'Robotikos Akademiją įkūriau aš, Kristijonas, o bureliai.lt kuria ExoClass — įmonė, kurios bendraįkūrėjis taip pat esu. Todėl šiame teste nė vienas teikėjas negauna pirmumo: technologijos rodomos tik tada, kai tikrai atitinka profilį, o žemėlapis ir sąrašai visus būrelius rodo vienodai.';
+  var DISCLOSURE = 'Robotikos Akademiją įkūriau aš, Kristijonas, o bureliai.lt kuria ExoClass, įmonė, kurios bendraįkūrėjas taip pat esu. Todėl šiame teste nė vienas teikėjas negauna pirmumo: technologijos rodomos tik tada, kai tikrai atitinka profilį, o žemėlapis ir sąrašai visus būrelius rodo vienodai.';
 
   global.TESTAS = {
     TYPES: TYPES, QUESTIONS: QUESTIONS, META: META, SUPPLY: SUPPLY, SUPPLY_TOTAL: SUPPLY_TOTAL,
