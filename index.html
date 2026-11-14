@@ -81,6 +81,17 @@ window.BTConsent=(function(){
   <!-- ============================ 1. LANDING ============================ -->
   <section id="s-landing" class="screen on" aria-labelledby="h-landing">
     <div class="wrap hero">
+      <figure class="kv-video" id="kvVideo">
+        <div class="kv-video-box">
+          <video id="kvVid" src="https://krisvas333.github.io/neuron-ar/kv/video/testas.mp4" poster="https://krisvas333.github.io/neuron-ar/kv/video/testas-poster.jpg" playsinline muted preload="metadata" aria-label="Kris Vas: kas yra būrelių testas, 39 s video"></video>
+          <button type="button" class="kv-video-play" id="kvVidPlay">▶ Žiūrėti su garsu</button>
+        </div>
+        <figcaption>
+          <span>39 s · Kris Vas · AI avataras mano balsu</span>
+          <details><summary>Video tekstas</summary><p>Kuris būrelis tinka tavo vaikui? Nebūtinai tas, kuris arčiausiai namų. Labas, aš Kristijonas. Daugiau nei 10 metų kuriu būrelius vaikams, ir dažniausiai tėvai manęs klausia: nuo ko pradėti? Todėl sukūriau testą. 10 klausimų apie vaiką, apie 2 minutes. Rezultatas: vienas iš 6 tipų. Statytojas, tyrinėtojas, atlikėjas, strategas, judantis ar jungėjas. Ir tikros Vilniaus programos, kurios tam tipui tinka. Atvirai: vieną būrelį turiu ir aš. Todėl testas sukurtas taip, kad nė vienas teikėjas negautų pirmumo. Nemokamai ir be reklamos. Spausk mygtuką po šiuo video ir pažiūrėk, ar rezultatas atpažins tavo vaiką.</p></details>
+        </figcaption>
+      </figure>
+
       <p class="eyebrow">Nemokamas · 2 min · 10 klausimų</p>
       <h1 id="h-landing">Koks būrelis tinka <em>MANO</em> vaikui?</h1>
       <p class="lead">Šeši tipai, 2 624 realios Vilniaus programos, jokios reklamos.</p>
@@ -152,6 +163,19 @@ window.BTConsent=(function(){
 
 <script src="data.js"></script>
 <script src="app.js"></script>
+<script>
+(function(){
+  var v=document.getElementById('kvVid'), b=document.getElementById('kvVidPlay'); if(!v||!b) return;
+  var sent={};
+  function ev(n){ if(sent[n]) return; sent[n]=1; try{ if(window.gtag) gtag('event',n,{video:'testas'}); }catch(e){} }
+  var c=navigator.connection||{};
+  if(!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches) && !c.saveData){ v.muted=true; var p=v.play(); if(p&&p.catch) p.catch(function(){}); ev('kv_video_autoplay'); }
+  function sound(){ v.currentTime=0; v.muted=false; v.controls=true; b.hidden=true; var p=v.play(); if(p&&p.catch) p.catch(function(){}); ev('kv_video_sound'); }
+  b.onclick=sound; v.addEventListener('click',function(){ if(v.muted) sound(); });
+  v.addEventListener('timeupdate',function(){ if(!v.muted&&v.duration&&v.currentTime>=v.duration/2) ev('kv_video_50'); });
+  v.addEventListener('ended',function(){ if(v.muted){ v.load(); } else { ev('kv_video_complete'); b.hidden=false; b.textContent='↺ Žiūrėti dar kartą'; } });
+})();
+</script>
 
 <!-- sutikimo juosta — abu mygtukai vienodo svorio (EDPB: jokių tamsiųjų šablonų) -->
 <div class="consent" id="consent" role="dialog" aria-modal="false" aria-labelledby="cnsT" hidden>
